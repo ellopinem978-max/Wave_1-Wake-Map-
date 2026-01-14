@@ -1,732 +1,1059 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wake Map</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#020617">
+    <meta name="description" content="Wake Map - Titanium Execution Protocol">
+    <title>Wake Map - Titanium Edition</title>
     
+    <!-- 
+        EXTERNAL DEPENDENCIES 
+        Using minimal external deps to keep the core pure.
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- TYPOGRAPHY -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Audiowide&display=swap" rel="stylesheet">
+    
+    <!-- TAILWIND CONFIGURATION -->
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Audiowide', 'cursive'],
                     },
                     colors: {
-                        midnight: "#050A1F",
-                        navy: "#0F1C4D",
-                        navyLight: "#182B6E",
-                        neon: "#00E0FF",
-                        textMain: "#E0F2FF",
-                        textDim: "#64748B",
-                        lightBlue: "#4CC9F0",
-                        // Difficulty Colors
-                        diffEasy: "#2DD4BF",   // Teal 400
-                        diffMed: "#60A5FA",    // Blue 400
-                        diffHard: "#C084FC",   // Purple 400
+                        void: "#000000",
+                        obsidian: "#020617",
+                        charcoal: "#0f172a",
+                        slate: "#1e293b",
+                        iron: "#334155",
+                        steel: "#475569",
+                        neonCyan: "#06b6d4",
+                        neonPurple: "#8b5cf6",
+                        neonGold: "#f59e0b",
+                        neonRed: "#ef4444",
+                        neonGreen: "#10b981",
+                        glass: "rgba(15, 23, 42, 0.75)",
+                        glassBorder: "rgba(255, 255, 255, 0.08)",
+                        glassHighlight: "rgba(255, 255, 255, 0.03)",
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'luxury-gradient': 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)',
+                    },
+                    animation: {
+                        'float': 'float 8s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                        'shimmer': 'shimmer 2.5s linear infinite',
+                        'glow-pulse': 'glowPulse 3s infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' },
+                        },
+                        glowPulse: {
+                            '0%': { textShadow: '0 0 5px currentColor' },
+                            '100%': { textShadow: '0 0 20px currentColor, 0 0 10px #fff' }
+                        }
                     }
                 }
             }
         }
     </script>
+
+    <!-- 
+        ========================================================================
+        VISUAL ENGINEERING (CSS)
+        Extensive styling for premium feel and specific rank identities.
+        ========================================================================
+    -->
     <style>
-        /* Custom Scrollbar Hide */
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
+        /* --- RESET & VARS --- */
+        :root {
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+            --header-height: 80px;
+            --nav-height: 88px;
         }
 
-        /* Prevent text selection specifically for app-like feel */
         body {
+            background-color: #020617;
+            color: #e2e8f0;
+            overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- UTILITIES --- */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .backdrop-blur-xl { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+        .text-glow { text-shadow: 0 0 10px currentColor; }
+        
+        /* --- BACKGROUND FX --- */
+        .ambient-layer {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(6,182,212,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.08) 0%, transparent 50%);
         }
         
-        /* Smooth transitions */
-        .transition-all-custom {
-            transition: all 0.5s ease;
+        #particle-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1; opacity: 0.4;
         }
+
+        /* --- GLASS COMPONENTS --- */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: all 0.3s var(--ease-out-expo);
+        }
+        
+        .glass-panel:active {
+            background: rgba(15, 23, 42, 0.8);
+            transform: scale(0.995);
+        }
+
+        .glass-panel.interactive:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- RANK VISUAL SYSTEM (15 TIERS - UPDATED) --- */
+        .rank-display { font-family: 'Audiowide', cursive; letter-spacing: 0.05em; }
+
+        /* 1. F — Failing (Abu-abu gelap matte) */
+        .tier-f { 
+            color: #4B5563; 
+            filter: grayscale(100%);
+            text-shadow: none;
+        }
+        
+        /* 2. E — Elementary (Abu-abu muda matte) */
+        .tier-e {
+            color: #6B7280;
+            filter: none;
+            text-shadow: none;
+        }
+        
+        /* 3. D — Developing (Cokelat kusam matte) */
+        .tier-d {
+            color: #7C5C3B;
+            text-shadow: none;
+        }
+        
+        /* 4. C — Capable (Hijau zaitun matte -> soft highlight) */
+        .tier-c {
+            color: #4B7F52;
+            text-shadow: 0 1px 2px rgba(75, 127, 82, 0.3);
+        }
+        
+        /* 5. B — Balanced (Biru pudar soft glow) */
+        .tier-b {
+            color: #3B82F6;
+            text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* 6. A — Advanced (Biru terang soft glow konsisten) */
+        .tier-a {
+            color: #2563EB;
+            text-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
+        }
+
+        /* 7. S — Superior (Ungu elegan glow halus) */
+        .tier-s {
+            color: #7C3AED;
+            text-shadow: 0 0 15px rgba(124, 58, 237, 0.6);
+        }
+
+        /* 8. SS — Supremely Skilled (Ungu -> magenta glow lembut + depth) */
+        .tier-ss {
+            background: linear-gradient(to bottom, #9333EA, #D946EF);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.6));
+        }
+
+        /* 9. EX — Exceptional (Emas muda metallic sheen ringan) */
+        .tier-ex {
+            background: linear-gradient(135deg, #FEF08A 20%, #FACC15 50%, #A16207 80%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 1px 2px rgba(234, 179, 8, 0.5));
+        }
+
+        /* 10. MR — Master Rank (Emas tua metallic + shimmer pelan) */
+        .tier-mr {
+            background: linear-gradient(45deg, #CA8A04 0%, #FDE047 50%, #CA8A04 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite;
+            filter: drop-shadow(0 0 5px rgba(202, 138, 4, 0.6));
+        }
+
+        /* 11. UR — Ultra Rare (Cyan kristal glow terang + shimmer) */
+        .tier-ur {
+            color: #22D3EE;
+            text-shadow: 0 0 5px #fff, 0 0 15px #22D3EE, 0 0 25px #0891B2;
+            animation: glow-pulse 3s infinite;
+        }
+
+        /* 12. EXR — Extreme Rank (Merah ruby radiant glow terkontrol) */
+        .tier-exr {
+            color: #DC2626;
+            text-shadow: 0 0 10px #EF4444, 0 0 20px #7F1D1D;
+            filter: contrast(1.2);
+        }
+
+        /* 13. HS — High Spec (Merah -> emas animated gradient glow pelan) */
+        .tier-hs {
+            background: linear-gradient(to right, #B91C1C, #F59E0B, #B91C1C);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: shimmer 6s linear infinite;
+            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+        }
+
+        /* 14. PS — Peak State (Putih mutiara halo glow + shine) */
+        .tier-ps {
+            color: #F9FAFB;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.4);
+        }
+
+        /* 15. MAX — Maximum (Emas putih radiant glow + subtle particle) */
+        .tier-max {
+            background: linear-gradient(to bottom, #FFFFFF 30%, #FDE68A 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px #FDE68A, 0 0 40px #F59E0B;
+            position: relative;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes text-shimmer {
+            to { background-position: 200% center; }
+        }
+        @keyframes pulse-radiance {
+            from { filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5)); }
+            to { filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.8)); }
+        }
+
+        /* --- NAVIGATION DOCK --- */
+        .nav-dock {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+        }
+        
+        .nav-item {
+            position: relative;
+            color: #64748b;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .nav-item.active {
+            color: #06b6d4;
+            transform: translateY(-4px);
+        }
+        .nav-item.active .nav-icon {
+            filter: drop-shadow(0 4px 8px rgba(6,182,212,0.4));
+            stroke-width: 2.5px;
+        }
+        .nav-indicator {
+            width: 4px; height: 4px; background: #06b6d4; border-radius: 50%;
+            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%) scale(0);
+            transition: transform 0.3s ease; box-shadow: 0 0 8px #06b6d4;
+        }
+        .nav-item.active .nav-indicator { transform: translateX(-50%) scale(1); }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        #toast-container {
+            position: fixed; top: 20px; left: 0; right: 0;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            pointer-events: none; z-index: 100;
+        }
+        .toast-msg {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(-20px) scale(0.95);
+            opacity: 0;
+            animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            display: flex; align-items: center; gap: 12px;
+            pointer-events: auto;
+        }
+        @keyframes toastIn { to { transform: translateY(0) scale(1); opacity: 1; } }
+        @keyframes toastOut { to { transform: translateY(-20px) scale(0.9); opacity: 0; } }
+
+        /* --- PAGE TRANSITIONS --- */
+        .view-transition { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- CALENDAR GRID --- */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .cal-cell {
+            aspect-ratio: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            border-radius: 8px; font-size: 10px; font-weight: 700;
+            border: 1px solid transparent; transition: all 0.2s;
+            position: relative;
+        }
+        .cal-cell.active { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.5); color: #fff; }
+        .cal-cell:hover { background: rgba(255,255,255,0.05); }
+        .cal-dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; }
+        
+        .dot-success { background: #10b981; box-shadow: 0 0 4px #10b981; }
+        .dot-fail { background: #ef4444; }
+        .dot-partial { background: #8b5cf6; }
     </style>
 </head>
-<body class="bg-midnight font-sans text-textMain min-h-screen flex justify-center selection:bg-neon selection:text-navy">
+<body class="font-sans text-sm antialiased text-textMain">
 
-    <!-- Mobile Container Limit -->
-    <div class="w-full max-w-md relative flex flex-col h-screen overflow-hidden bg-midnight shadow-2xl">
+    <!-- 
+        APP SHELL
+        The persistent container that holds all views.
+    -->
+    <div id="app-root" class="relative w-full max-w-md mx-auto h-screen flex flex-col bg-obsidian shadow-2xl border-x border-white/5 overflow-hidden">
         
-        <!-- Header -->
-        <header class="pt-8 pb-4 px-6 flex items-center justify-between bg-gradient-to-b from-midnight to-transparent z-10">
-            <div>
-                <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                    <span class="text-neon">WAKE</span>MAP
-                </h1>
-                <p id="header-date" class="text-blue-400 text-sm">Loading...</p>
-            </div>
-            
-            <!-- Streak Counter -->
-            <div class="flex items-center gap-2">
-                <div class="flex flex-col items-end">
-                    <span class="text-[10px] text-blue-400 uppercase tracking-wider font-bold">Streak</span>
-                    <span id="streak-count" class="text-xl font-black text-orange-400 leading-none">0</span>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-blue-900/50 flex items-center justify-center border border-orange-500/50 text-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.2)]">
-                    <i data-lucide="flame" class="w-5 h-5 fill-orange-500/20"></i>
-                </div>
-            </div>
+        <!-- Interactive Background -->
+        <canvas id="particle-canvas"></canvas>
+        <div class="ambient-layer"></div>
+
+        <!-- 1. HEADER -->
+        <header id="app-header" class="flex-none pt-10 pb-4 px-6 z-20 border-b border-white/5 bg-gradient-to-b from-obsidian via-obsidian/95 to-transparent backdrop-blur-sm">
+            <!-- Dynamic Header Content -->
         </header>
 
-        <!-- Main Content Area -->
-        <main id="app-content" class="flex-1 overflow-y-auto px-6 hide-scrollbar pb-24">
-            <!-- Content will be injected here by JavaScript -->
+        <!-- 2. MAIN VIEWPORT -->
+        <main id="app-viewport" class="flex-1 overflow-y-auto px-5 py-6 hide-scroll relative z-10 space-y-8 scroll-smooth">
+            <!-- Views are injected here -->
         </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="absolute bottom-6 left-4 right-4 h-20 bg-navy/90 backdrop-blur-md border border-blue-800/50 rounded-2xl flex items-center justify-around shadow-2xl z-20">
-            <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all text-neon scale-110">
-                <i data-lucide="map" class="w-6 h-6 stroke-2.5"></i>
-                <span class="text-[10px] font-bold">Peta</span>
-            </button>
-
-            <button onclick="switchTab('rewards')" id="nav-rewards" class="flex flex-col items-center gap-1 transition-all text-blue-500 hover:text-blue-300">
-                <i data-lucide="gift" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Hadiah</span>
-            </button>
-
-            <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center gap-1 transition-all text-blue-500 hover:text-blue-300">
-                <i data-lucide="history" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Riwayat</span>
-            </button>
+        <!-- 3. NAVIGATION -->
+        <nav id="app-nav" class="flex-none h-24 px-6 pb-6 pt-2 z-30 bg-gradient-to-t from-obsidian via-obsidian/95 to-transparent pointer-events-none">
+            <div id="nav-inner" class="glass-panel w-full h-full rounded-2xl flex items-center justify-around px-2 shadow-2xl pointer-events-auto">
+                <!-- Nav Items injected here -->
+            </div>
         </nav>
+
+        <!-- 4. OVERLAYS -->
+        <div id="toast-container"></div>
+        <div id="modal-container" class="fixed inset-0 z-50 pointer-events-none flex items-end sm:items-center justify-center transition-all duration-300 opacity-0 invisible backdrop-blur-sm bg-black/60"></div>
 
     </div>
 
-    <!-- Application Logic -->
+    <!-- 
+        ========================================================================
+        JAVASCRIPT ARCHITECTURE
+        Modular, Service-Oriented, and Robust
+        ========================================================================
+    -->
     <script>
-        // --- State Management ---
-        // Using new keys 'wakeMap_' to ensure clean slate for new difficulty system
-        const state = {
-            tasks: JSON.parse(localStorage.getItem('wakeMap_tasks')) || [],
-            rewards: JSON.parse(localStorage.getItem('wakeMap_rewards')) || [],
-            reflections: JSON.parse(localStorage.getItem('wakeMap_reflections')) || [],
-            activeTab: 'home', // home, rewards, history
-            historySelectedDate: null,
-            selectedDifficulty: 'easy' // easy, medium, hard
-        };
-
-        // --- Utility Functions ---
-        const getTodayString = () => new Date().toISOString().split('T')[0];
-        const getTomorrowString = () => {
-            const d = new Date();
-            d.setDate(d.getDate() + 1);
-            return d.toISOString().split('T')[0];
-        };
-        const getDayName = (dateString) => {
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const d = new Date(dateString);
-            return days[d.getDay()];
-        };
-        const formatDateIndo = (dateString) => {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString('id-ID', options);
-        };
-        const getMonthKey = (dateString) => dateString.slice(0, 7);
-        const getPreviousMonthKey = () => {
-            const d = new Date();
-            d.setMonth(d.getMonth() - 1);
-            return d.toISOString().slice(0, 7);
-        };
-
-        const getPointsByDifficulty = (diff) => {
-            if (diff === 'easy') return 2;
-            if (diff === 'medium') return 4;
-            if (diff === 'hard') return 6;
-            return 0;
-        };
-
-        const getDifficultyLabel = (diff) => {
-            if (diff === 'easy') return "Mudah";
-            if (diff === 'medium') return "Sedang";
-            if (diff === 'hard') return "Sulit";
-            return "?";
-        };
-
-        const getDifficultyColor = (diff) => {
-            if (diff === 'easy') return "text-teal-400 border-teal-400 bg-teal-950/50";
-            if (diff === 'medium') return "text-blue-400 border-blue-400 bg-blue-950/50";
-            if (diff === 'hard') return "text-purple-400 border-purple-400 bg-purple-950/50";
-            return "text-gray-400 border-gray-400";
-        };
-
-        // --- Data Persistence ---
-        function saveData() {
-            localStorage.setItem('wakeMap_tasks', JSON.stringify(state.tasks));
-            localStorage.setItem('wakeMap_rewards', JSON.stringify(state.rewards));
-            localStorage.setItem('wakeMap_reflections', JSON.stringify(state.reflections));
-            render(); 
-        }
-
-        // --- Core Logic: Points & Streak ---
-        function calculateStats() {
-            const todayStr = getTodayString();
-            const currentMonthKey = getMonthKey(todayStr);
-            const lastMonthKey = getPreviousMonthKey();
-
-            // Points Calculation
-            const todayPoints = state.tasks
-                .filter(t => t.date === todayStr && t.status === 'completed')
-                .reduce((sum, t) => sum + getPointsByDifficulty(t.difficulty), 0);
-
-            const monthPoints = state.tasks
-                .filter(t => t.date.startsWith(currentMonthKey) && t.status === 'completed')
-                .reduce((sum, t) => sum + getPointsByDifficulty(t.difficulty), 0);
-
-            const lastMonthPoints = state.tasks
-                .filter(t => t.date.startsWith(lastMonthKey) && t.status === 'completed')
-                .reduce((sum, t) => sum + getPointsByDifficulty(t.difficulty), 0);
-
-            // Streak Calculation
-            let streak = 0;
-            let checkDate = new Date();
+        /**
+         * ---------------------------------------------------------------------
+         * MODULE 1: CONSTANTS & CONFIG
+         * Single source of truth for the application
+         * ---------------------------------------------------------------------
+         */
+        const Config = {
+            VERSION: '4.0.0-MAGNUM',
+            STORAGE_PREFIX: 'wakemap_titan_',
             
-            // Check Today first
-            const todaysTasks = state.tasks.filter(t => t.date === todayStr);
+            // Time Protocol: 2-Hour Blocks
+            TIME_SLOTS: [
+                { id: 'halt', label: 'HALT', range: '00:00 - 02:00', end: 2, desc: 'Deep Rest & Recovery' },
+                { id: 'void', label: 'VOID', range: '02:00 - 04:00', end: 4, desc: 'Subconscious Processing' },
+                { id: 'boot', label: 'BOOT', range: '04:00 - 06:00', end: 6, desc: 'System Initialization' },
+                { id: 'prim', label: 'PRIM', range: '06:00 - 08:00', end: 8, desc: 'Prime Mental State' },
+                { id: 'core', label: 'CORE', range: '08:00 - 10:00', end: 10, desc: 'Deep Focus Work' },
+                { id: 'flow', label: 'FLOW', range: '10:00 - 12:00', end: 12, desc: 'High Performance Flow' },
+                { id: 'idle', label: 'IDLE', range: '12:00 - 14:00', end: 14, desc: 'System Recharge' },
+                { id: 'sync', label: 'SYNC', range: '14:00 - 16:00', end: 16, desc: 'Strategic Alignment' },
+                { id: 'exec', label: 'EXEC', range: '16:00 - 18:00', end: 18, desc: 'Tactical Execution' },
+                { id: 'wind', label: 'WIND', range: '18:00 - 20:00', end: 20, desc: 'Evening Decompression' },
+                { id: 'rest', label: 'REST', range: '20:00 - 22:00', end: 22, desc: 'Recovery Mode' },
+                { id: 'fade', label: 'FADE', range: '22:00 - 24:00', end: 24, desc: 'System Shutdown' },
+                { id: 'all',  label: 'ALL',  range: '00:00 - 24:00', end: 24, desc: 'Full Day Cycle' }
+            ],
+
+            // Rank Definitions (15 Tiers) - UPDATED COLORS
+            TIERS: [
+                { id:0, code:'F', name:'Failing', class:'tier-f', barColor:'#4B5563' },
+                { id:1, code:'E', name:'Elementary', class:'tier-e', barColor:'#6B7280' },
+                { id:2, code:'D', name:'Developing', class:'tier-d', barColor:'#7C5C3B' },
+                { id:3, code:'C', name:'Capable', class:'tier-c', barColor:'#4B7F52' },
+                { id:4, code:'B', name:'Balanced', class:'tier-b', barColor:'#3B82F6' },
+                { id:5, code:'A', name:'Advanced', class:'tier-a', barColor:'#2563EB' },
+                { id:6, code:'S', name:'Superior', class:'tier-s', barColor:'#7C3AED' },
+                { id:7, code:'SS', name:'Supremely Skilled', class:'tier-ss', barColor:'#9333EA' },
+                { id:8, code:'EX', name:'Exceptional', class:'tier-ex', barColor:'#FACC15' },
+                { id:9, code:'MR', name:'Master Rank', class:'tier-mr', barColor:'#EAB308' },
+                { id:10, code:'UR', name:'Ultra Rare', class:'tier-ur', barColor:'#22D3EE' },
+                { id:11, code:'EXR', name:'Extreme Rank', class:'tier-exr', barColor:'#DC2626' },
+                { id:12, code:'HS', name:'High Spec', class:'tier-hs', barColor:'#F59E0B' },
+                { id:13, code:'PS', name:'Peak State', class:'tier-ps', barColor:'#F9FAFB' },
+                { id:14, code:'MAX', name:'Maximum', class:'tier-max', barColor:'#FDE68A' }
+            ],
+
+            // Difficulty Settings
+            DIFFICULTY: {
+                easy: { id: 'easy', label: 'Mudah', pts: 2, color: 'text-neonGreen', border: 'border-neonGreen', hex: '#10b981' },
+                medium: { id: 'medium', label: 'Sedang', pts: 4, color: 'text-neonCyan', border: 'border-neonCyan', hex: '#06b6d4' },
+                hard: { id: 'hard', label: 'Sulit', pts: 6, color: 'text-neonPurple', border: 'border-neonPurple', hex: '#8b5cf6' }
+            }
+        };
+
+        /**
+         * ---------------------------------------------------------------------
+         * MODULE 2: CORE SERVICES
+         * ---------------------------------------------------------------------
+         */
+        
+        // --- 2.1 TIME SERVICE ---
+        const TimeService = {
+            getISO: (d = new Date()) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            },
+            getTomorrow: () => {
+                const d = new Date(); d.setDate(d.getDate() + 1);
+                return TimeService.getISO(d);
+            },
+            getMonthKey: (iso) => iso.slice(0, 7),
             
-            // Rule: Streak resets to 0 if ANY task today is failed
-            if (todaysTasks.some(t => t.status === 'failed')) {
-                return { todayPoints, monthPoints, lastMonthPoints, streak: 0 };
+            formatDate: (iso) => {
+                const d = new Date(iso);
+                return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            },
+            formatMonth: (isoMonth) => {
+                const [y, m] = isoMonth.split('-');
+                return new Date(y, parseInt(m)-1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
+            },
+            formatCurrency: (n) => new Intl.NumberFormat('id-ID').format(n)
+        };
+
+        // --- 2.2 STORAGE SERVICE ---
+        const Store = {
+            get: (key) => {
+                try { return JSON.parse(localStorage.getItem(Config.STORAGE_PREFIX + key)) || []; } 
+                catch { return []; }
+            },
+            set: (key, data) => {
+                localStorage.setItem(Config.STORAGE_PREFIX + key, JSON.stringify(data));
             }
+        };
 
-            // Rule: Include today in streak ONLY IF all tasks are completed
-            // If today is empty or has pending, we don't increment streak for today yet, 
-            // but we don't break it either, we check yesterday.
-            if (todaysTasks.length > 0 && todaysTasks.every(t => t.status === 'completed')) {
-                streak++;
-                checkDate.setDate(checkDate.getDate() - 1); // Move to yesterday to continue checking
-            } else {
-                checkDate.setDate(checkDate.getDate() - 1); // Start checking from yesterday
-            }
+        // --- 2.3 ENGINE (LOGIC) ---
+        const Engine = {
+            // Calculates Points (Current, Monthly, Last Month)
+            calcPoints: (tasks) => {
+                const today = TimeService.getISO();
+                const monthKey = today.slice(0, 7);
+                const d = new Date(); d.setMonth(d.getMonth() - 1);
+                const lastMonthKey = TimeService.getISO(d).slice(0, 7);
 
-            // Loop backwards
-            while (true) {
-                const dateStr = checkDate.toISOString().split('T')[0];
-                const tasks = state.tasks.filter(t => t.date === dateStr);
-
-                if (tasks.length === 0) {
-                    // No tasks on this day breaks the streak (assuming daily habit)
-                    break;
-                }
-
-                if (tasks.every(t => t.status === 'completed')) {
-                    streak++;
-                    checkDate.setDate(checkDate.getDate() - 1);
-                } else {
-                    // Incomplete or failed tasks yesterday or before -> Streak ends
-                    break;
-                }
-            }
-
-            return { todayPoints, monthPoints, lastMonthPoints, streak };
-        }
-
-        // --- Actions ---
-
-        function setDifficulty(level) {
-            state.selectedDifficulty = level;
-            // Visual update handled by render or manual DOM manipulation if optimization needed
-            // For now, full render is fine
-            render();
-        }
-
-        function addTask() {
-            const textEl = document.getElementById('new-task-text');
-            
-            if (!textEl.value.trim()) return;
-
-            const newTask = {
-                id: crypto.randomUUID(),
-                text: textEl.value,
-                difficulty: state.selectedDifficulty,
-                date: getTomorrowString(), // Always for tomorrow
-                status: 'pending'
-            };
-
-            state.tasks.push(newTask);
-            saveData();
-        }
-
-        function deleteTask(id) {
-            state.tasks = state.tasks.filter(t => t.id !== id);
-            saveData();
-        }
-
-        function updateTaskStatus(id, newStatus) {
-            const taskIndex = state.tasks.findIndex(t => t.id === id);
-            if (taskIndex > -1) {
-                state.tasks[taskIndex].status = newStatus;
-                saveData();
-                checkRewards();
-            }
-        }
-
-        function saveReflection() {
-            const textEl = document.getElementById('today-reflection');
-            if (!textEl.value.trim()) return;
-
-            const todayStr = getTodayString();
-            const existingIndex = state.reflections.findIndex(r => r.date === todayStr);
-
-            if (existingIndex > -1) {
-                state.reflections[existingIndex].text = textEl.value;
-            } else {
-                state.reflections.push({
-                    date: todayStr,
-                    text: textEl.value
+                let cur = 0, mon = 0, last = 0;
+                tasks.forEach(t => {
+                    if (t.status === 'completed') {
+                        const pts = Config.DIFFICULTY[t.difficulty]?.pts || 0;
+                        if (t.date === today) cur += pts;
+                        if (t.date.startsWith(monthKey)) mon += pts;
+                        if (t.date.startsWith(lastMonthKey)) last += pts;
+                    }
                 });
-            }
-            saveData();
-        }
+                return { cur, mon, last };
+            },
 
-        function addReward() {
-            const nameEl = document.getElementById('new-reward-text');
-            const costEl = document.getElementById('new-reward-cost');
-            
-            if (!nameEl.value.trim() || !costEl.value) return;
+            // Calculates Rank based on Monthly Data (2-Bar Logic)
+            calcRank: (monthKey, tasks) => {
+                let eTier = 0, eBar = 0; // Execution
+                let cTier = 0, cBar = 0; // Consistency
 
-            const newReward = {
-                id: crypto.randomUUID(),
-                name: nameEl.value,
-                cost: parseInt(costEl.value),
-                status: 'active',
-                redeemedDate: null
-            };
+                const mTasks = tasks.filter(t => t.date.startsWith(monthKey));
+                const uniqueDates = [...new Set(mTasks.map(t => t.date))].sort();
+                const today = TimeService.getISO();
 
-            state.rewards.push(newReward);
-            saveData();
-        }
+                uniqueDates.forEach(date => {
+                    if (date === today) return; // Don't process today until tomorrow
 
-        function deleteReward(id) {
-            state.rewards = state.rewards.filter(r => r.id !== id);
-            saveData();
-        }
+                    const dTasks = mTasks.filter(t => t.date === date);
+                    const done = dTasks.filter(t => t.status === 'completed').length;
+                    const total = dTasks.length;
+                    const fail = dTasks.some(t => t.status === 'failed');
 
-        function checkRewards() {
-            const { monthPoints } = calculateStats();
-            state.rewards.forEach(reward => {
-                if (reward.status === 'active' && monthPoints >= reward.cost) {
-                    setTimeout(() => {
-                        if (confirm(`🎉 SELAMAT! Poin Bulan Ini (${monthPoints}) mencapai: "${reward.name}"!\n\nKlaim sekarang?`)) {
-                            reward.status = 'redeemed';
-                            reward.redeemedDate = getTodayString();
-                            saveData();
+                    // EXECUTION: Requires ALL tasks done
+                    let eWin = (done === total && total > 0);
+                    let eLose = (fail || done < total);
+
+                    if (eWin) {
+                        eBar++; if (eBar > 2) { if (eTier < 14) { eTier++; eBar = 1; } else eBar = 2; }
+                    } else if (eLose) {
+                        eBar--; if (eBar < 0) { if (eTier > 0) { eTier--; eBar = 1; } else eBar = 0; }
+                    }
+
+                    // CONSISTENCY: Requires MIN 1 task done
+                    let cWin = (done >= 1);
+                    let cLose = (done === 0);
+
+                    if (cWin) {
+                        cBar++; if (cBar > 2) { if (cTier < 14) { cTier++; cBar = 1; } else cBar = 2; }
+                    } else if (cLose) {
+                        cBar--; if (cBar < 0) { if (cTier > 0) { cTier--; cBar = 1; } else cBar = 0; }
+                    }
+                });
+
+                return {
+                    exec: { tier: Config.TIERS[eTier], bars: eBar },
+                    cons: { tier: Config.TIERS[cTier], bars: cBar }
+                };
+            },
+
+            // Auto-Fail Checker
+            checkAutoFail: (tasks) => {
+                const now = new Date();
+                const h = now.getHours();
+                const today = TimeService.getISO();
+                let changed = false;
+
+                tasks.forEach(t => {
+                    if (t.date === today && t.status === 'pending') {
+                        const slot = Config.TIME_SLOTS.find(s => s.id === (t.timeSlot || 'all'));
+                        if (slot && slot.id !== 'all' && h >= slot.end) {
+                            t.status = 'failed';
+                            changed = true;
                         }
-                    }, 300);
+                    }
+                });
+                return changed;
+            }
+        };
+
+        /**
+         * ---------------------------------------------------------------------
+         * MODULE 3: COMPONENT FACTORY
+         * Creating HTML strings for UI elements
+         * ---------------------------------------------------------------------
+         */
+        const Components = {
+            rankCard(title, data, icon) {
+                const t = data.tier;
+                // Generate 2 Bars
+                let bars = '';
+                for(let i=1; i<=2; i++) {
+                    const active = i <= data.bars;
+                    const style = active ? `background-color:${t.barColor}; box-shadow:0 0 10px ${t.barColor}` : `background-color:#334155`;
+                    bars += `<div class="w-1/2 h-1.5 rounded-full transition-all duration-500" style="${style}"></div>`;
                 }
-            });
-        }
-
-        function switchTab(tabName) {
-            state.activeTab = tabName;
-            render();
-        }
-
-        function setHistoryDate(date) {
-            state.historySelectedDate = date;
-            render();
-        }
-
-        // --- Rendering Logic ---
-
-        function render() {
-            const { todayPoints, monthPoints, lastMonthPoints, streak } = calculateStats();
-            
-            // Update Header Info
-            document.getElementById('header-date').textContent = formatDateIndo(getTodayString());
-            document.getElementById('streak-count').textContent = streak;
-
-            // Update Nav Icons
-            const navIds = ['nav-home', 'nav-rewards', 'nav-history'];
-            navIds.forEach(id => {
-                const el = document.getElementById(id);
-                const tabName = id.replace('nav-', '');
-                const iconEl = el.querySelector('i') || el.querySelector('svg');
-                
-                if (tabName === state.activeTab) {
-                    el.className = "flex flex-col items-center gap-1 transition-all text-neon scale-110";
-                    if(iconEl) iconEl.setAttribute('stroke-width', '2.5');
-                } else {
-                    el.className = "flex flex-col items-center gap-1 transition-all text-blue-500 hover:text-blue-300";
-                    if(iconEl) iconEl.setAttribute('stroke-width', '2');
-                }
-            });
-
-            // Content
-            const appContent = document.getElementById('app-content');
-            appContent.innerHTML = ''; 
-
-            if (state.activeTab === 'home') renderHome(appContent, todayPoints, monthPoints, lastMonthPoints);
-            else if (state.activeTab === 'rewards') renderRewards(appContent, monthPoints);
-            else if (state.activeTab === 'history') renderHistory(appContent);
-
-            lucide.createIcons();
-        }
-
-        function renderHome(container, todayPoints, monthPoints, lastMonthPoints) {
-            const todayStr = getTodayString();
-            const tomorrowStr = getTomorrowString();
-
-            const todayTasks = state.tasks.filter(t => t.date === todayStr);
-            const tomorrowTasks = state.tasks.filter(t => t.date === tomorrowStr);
-            const todayReflection = state.reflections.find(r => r.date === todayStr);
-
-            // Reflection HTML
-            let reflectionHtml = '';
-            if (todayReflection) {
-                reflectionHtml = `
-                    <div class="bg-navy p-4 rounded-xl border border-blue-900/50 mb-6">
-                        <div class="flex items-center gap-2 mb-2 text-neon">
-                            <i data-lucide="brain-circuit" class="w-5 h-5"></i>
-                            <h3 class="font-bold text-sm">Refleksi Hari Ini</h3>
-                        </div>
-                        <p class="text-textMain italic">"${todayReflection.text}"</p>
-                    </div>
-                `;
-            } else {
-                reflectionHtml = `
-                    <div class="bg-navy p-4 rounded-xl border border-dashed border-blue-700 mb-6">
-                        <label class="block text-blue-300 text-xs font-bold mb-2 uppercase tracking-wide">Refleksi Harian (Wajib)</label>
-                        <div class="flex gap-2">
-                            <input id="today-reflection" type="text" placeholder="Apa yang kupelajari hari ini?" 
-                                class="flex-1 bg-midnight text-textMain placeholder-blue-800 rounded-lg p-3 text-sm outline-none border border-blue-900 focus:border-neon">
-                            <button onclick="saveReflection()" class="bg-blue-700 hover:bg-neon text-white p-3 rounded-lg transition-colors">
-                                <i data-lucide="save" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Difficulty Buttons HTML
-            const diffs = ['easy', 'medium', 'hard'];
-            const diffButtons = diffs.map(d => {
-                const isSelected = state.selectedDifficulty === d;
-                const label = getDifficultyLabel(d);
-                const points = getPointsByDifficulty(d);
-                
-                let baseClass = "flex-1 py-2 rounded-lg text-xs font-bold border transition-all active:scale-95";
-                let colorClass = "";
-                
-                if (d === 'easy') colorClass = isSelected ? "bg-teal-500 text-midnight border-teal-500" : "bg-transparent text-teal-500 border-teal-900/50 hover:border-teal-500";
-                if (d === 'medium') colorClass = isSelected ? "bg-blue-500 text-white border-blue-500" : "bg-transparent text-blue-500 border-blue-900/50 hover:border-blue-500";
-                if (d === 'hard') colorClass = isSelected ? "bg-purple-500 text-white border-purple-500" : "bg-transparent text-purple-500 border-purple-900/50 hover:border-purple-500";
-
-                return `<button onclick="setDifficulty('${d}')" class="${baseClass} ${colorClass}">${label} (${points})</button>`;
-            }).join('');
-
-            let html = `
-                <div class="space-y-6 animate-fade-in pt-4">
-                    <!-- Points Stats -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-navy/50 p-3 rounded-xl border border-blue-900 flex flex-col items-center">
-                            <span class="text-blue-400 text-[10px] uppercase">Bulan Lalu</span>
-                            <span class="text-xl font-bold text-textDim">${lastMonthPoints}</span>
-                        </div>
-                        <div class="bg-navy p-3 rounded-xl border border-neon/30 flex flex-col items-center shadow-[0_0_10px_rgba(0,224,255,0.1)]">
-                            <span class="text-neon text-[10px] uppercase font-bold">Bulan Ini</span>
-                            <span class="text-2xl font-bold text-white">${monthPoints}</span>
-                        </div>
-                    </div>
-
-                    ${reflectionHtml}
-
-                    <!-- Today Missions -->
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="check-circle-2" class="text-neon w-5 h-5"></i>
-                                <h2 class="text-lg font-bold text-white">Misi Hari Ini</h2>
-                            </div>
-                            <span class="text-xs font-bold ${todayPoints > 0 ? 'text-lightBlue' : 'text-red-500'} bg-navy px-3 py-1 rounded-full border border-blue-900">
-                                Total: ${todayPoints}
-                            </span>
-                        </div>
-                        
-                        <div class="space-y-3">
-                            ${todayTasks.length === 0 
-                                ? `<div class="p-6 rounded-xl border border-dashed border-blue-900 text-center text-blue-800 text-sm">
-                                    Tidak ada misi aktif.<br/>Siapkan misi untuk besok di bawah.
-                                   </div>`
-                                : todayTasks.map(task => renderTaskItem(task, true)).join('')
-                            }
-                        </div>
-                    </div>
-
-                    <div class="h-px w-full bg-gradient-to-r from-transparent via-blue-900 to-transparent"></div>
-
-                    <!-- Tomorrow Missions -->
-                    <div>
-                        <div class="flex items-center gap-2 mb-3">
-                            <i data-lucide="sunrise" class="text-purple-400 w-5 h-5"></i>
-                            <h2 class="text-lg font-bold text-white">
-                                Misi Besok <span class="text-purple-400">${getDayName(tomorrowStr)}</span>
-                            </h2>
-                        </div>
-
-                        <!-- Add Form -->
-                        <div class="bg-navy p-4 rounded-xl border border-blue-800 shadow-lg space-y-3">
-                            <input id="new-task-text" type="text" placeholder="Nama Misi Besok..." 
-                                class="w-full bg-midnight text-white placeholder-blue-700 rounded-lg p-3 outline-none border border-blue-900 focus:border-purple-500 transition-colors">
-                            
-                            <div class="flex gap-2">
-                                ${diffButtons}
-                            </div>
-                            
-                            <button onclick="addTask()" 
-                                class="w-full bg-gradient-to-r from-blue-700 to-purple-600 hover:from-blue-600 hover:to-purple-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-purple-900/20">
-                                <i data-lucide="plus-circle" class="w-5 h-5"></i> Tambah Misi
-                            </button>
-                        </div>
-
-                        <!-- List Tomorrow -->
-                        <div class="space-y-2 mt-4">
-                            ${tomorrowTasks.length === 0 
-                                ? `<p class="text-center text-blue-800 py-2 text-xs">Belum ada misi besok.</p>` 
-                                : tomorrowTasks.map(task => renderTaskItem(task, false)).join('')
-                            }
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.innerHTML = html;
-        }
-
-        function renderTaskItem(task, isToday) {
-            const isCompleted = task.status === 'completed';
-            const isPending = task.status === 'pending';
-            
-            const diffColor = getDifficultyColor(task.difficulty);
-            const diffLabel = getDifficultyLabel(task.difficulty);
-            const points = getPointsByDifficulty(task.difficulty);
-
-            // Opacity logic for fade out
-            const opacityClass = isPending ? 'opacity-100' : 'opacity-40';
-
-            let actionHtml = '';
-            if (isToday && isPending) {
-                actionHtml = `
-                    <button onclick="updateTaskStatus('${task.id}', 'failed')" class="w-10 h-10 flex items-center justify-center rounded-full bg-midnight border border-red-900/50 text-red-500 hover:bg-red-900/20 active:scale-90 transition-all">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                    <button onclick="updateTaskStatus('${task.id}', 'completed')" class="w-10 h-10 flex items-center justify-center rounded-full bg-midnight border border-teal-900/50 text-teal-400 hover:bg-teal-900/20 active:scale-90 transition-all">
-                        <i data-lucide="check" class="w-5 h-5"></i>
-                    </button>
-                `;
-            } else if (!isToday) {
-                actionHtml = `
-                    <button onclick="deleteTask('${task.id}')" class="p-2 text-blue-600 hover:text-red-400">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
-                `;
-            } else {
-                // Done/Failed Icon
-                const iconColor = isCompleted ? 'text-teal-400' : 'text-red-500';
-                const iconName = isCompleted ? 'check-circle' : 'x-circle';
-                actionHtml = `<i data-lucide="${iconName}" class="${iconColor} w-6 h-6"></i>`;
-            }
-
-            return `
-                <div class="flex items-center justify-between p-3 rounded-xl bg-navyLight border border-blue-900/30 shadow-md ${opacityClass} transition-all-custom">
-                    <div class="flex-1 pr-3">
-                        <p class="text-md font-medium text-white mb-1 leading-snug">${task.text}</p>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${diffColor}">
-                            ${diffLabel} +${points}
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        ${actionHtml}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderRewards(container, monthPoints) {
-            const activeRewards = state.rewards.filter(r => r.status === 'active');
-            // History Rewards
-            const historyRewards = state.rewards.filter(r => r.status === 'redeemed')
-                .sort((a, b) => new Date(b.redeemedDate) - new Date(a.redeemedDate));
-
-            let html = `
-                <div class="space-y-6 animate-fade-in pt-4">
-                    <div class="bg-gradient-to-br from-navy to-blue-950 p-6 rounded-2xl border border-blue-900 text-center shadow-lg relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-20 h-20 bg-neon/10 rounded-full -mr-10 -mt-10 blur-xl"></div>
-                        <p class="text-blue-300 mb-1 text-sm uppercase tracking-widest">Poin Bulan Ini</p>
-                        <p class="text-5xl font-black text-white drop-shadow-[0_0_10px_rgba(0,224,255,0.5)]">${monthPoints}</p>
-                    </div>
-
-                    <!-- Add Reward -->
-                    <div class="space-y-2">
-                        <h3 class="font-bold text-white ml-1 text-sm">Target Hadiah Baru</h3>
-                        <div class="bg-navy p-3 rounded-xl border border-blue-800 flex flex-col gap-3">
-                            <input id="new-reward-text" type="text" placeholder="Nama Hadiah..." 
-                                class="w-full bg-midnight text-white placeholder-blue-700 rounded-lg p-3 outline-none border border-blue-900 focus:border-neon">
-                            <div class="flex gap-2">
-                                <input id="new-reward-cost" type="number" placeholder="Poin" 
-                                    class="flex-1 bg-midnight text-white placeholder-blue-700 rounded-lg p-3 outline-none border border-blue-900 focus:border-neon">
-                                <button onclick="addReward()" class="bg-blue-600 hover:bg-neon text-white px-4 rounded-lg font-bold transition-colors">
-                                    <i data-lucide="plus" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active Rewards -->
-                    <div class="space-y-3">
-                        <h3 class="font-bold text-white ml-1 text-sm">Sedang Dikejar</h3>
-                        ${activeRewards.length === 0 
-                            ? `<div class="text-center py-6 text-blue-800 border border-dashed border-blue-900 rounded-xl text-xs">Kosong. Tambahkan target!</div>`
-                            : activeRewards.map(r => {
-                                const progress = Math.min((monthPoints / r.cost) * 100, 100);
-                                return `
-                                <div class="bg-navyLight p-4 rounded-xl relative overflow-hidden group">
-                                    <div class="absolute bottom-0 left-0 h-1 bg-neon transition-all duration-1000" style="width: ${progress}%"></div>
-                                    <div class="flex justify-between items-start mb-2">
-                                        <div>
-                                            <p class="text-white font-bold">${r.name}</p>
-                                            <p class="text-blue-400 text-xs mt-1">Target: <span class="text-neon">${r.cost}</span> | Saat ini: ${monthPoints}</p>
-                                        </div>
-                                        <button onclick="deleteReward('${r.id}')" class="text-blue-600 hover:text-red-500">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            `}).join('')
-                        }
-                    </div>
-                </div>
-            `;
-            container.innerHTML = html;
-        }
-
-        function renderHistory(container) {
-            const dates = [];
-            const today = new Date();
-            for(let i=0; i<60; i++) {
-                const date = new Date();
-                date.setDate(today.getDate() - i);
-                dates.push(date.toISOString().split('T')[0]);
-            }
-
-            const selectedTasks = state.historySelectedDate 
-                ? state.tasks.filter(t => t.date === state.historySelectedDate) 
-                : [];
-            
-            const selectedReflection = state.historySelectedDate
-                ? state.reflections.find(r => r.date === state.historySelectedDate)
-                : null;
-
-            let dateButtonsHtml = dates.map(date => {
-                const isSelected = state.historySelectedDate === date;
-                const dObj = new Date(date);
-                const day = dObj.getDate();
-                const month = dObj.toLocaleDateString('id-ID', {month:'short'});
-                
-                const activeClass = isSelected 
-                    ? 'bg-neon text-blue-950 shadow-[0_0_15px_rgba(0,224,255,0.4)] scale-110' 
-                    : 'bg-blue-900/40 text-blue-400 border border-blue-900/50';
 
                 return `
-                    <button onclick="setHistoryDate('${date}')" class="flex-shrink-0 w-14 h-16 rounded-xl flex flex-col items-center justify-center transition-all ${activeClass}">
-                        <span class="text-xs font-bold">${day}</span>
-                        <span class="text-[10px] uppercase">${month}</span>
-                    </button>
-                `;
-            }).join('');
-
-            let contentHtml = '';
-            if (!state.historySelectedDate) {
-                contentHtml = `
-                    <div class="h-64 flex items-center justify-center text-blue-800 flex-col gap-3 text-center px-6">
-                        <i data-lucide="calendar-search" class="w-12 h-12 opacity-30"></i>
-                        <p class="text-sm">Pilih tanggal di atas untuk melihat misi & refleksi masa lalu.</p>
+                <div class="glass-panel p-5 rounded-2xl flex-1 flex flex-col items-center justify-between relative overflow-hidden group min-h-[140px] hover:bg-white/5 transition-colors cursor-default">
+                    <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div class="flex items-center justify-between w-full mb-2 z-10">
+                        <span class="text-[8px] font-mono text-slate-400 font-bold tracking-widest">${title}</span>
+                        <i data-lucide="${icon}" class="w-3 h-3 text-slate-500"></i>
                     </div>
-                `;
-            } else {
-                contentHtml = `
-                    <div class="space-y-6 animate-fade-in">
-                        <div class="flex items-center justify-between border-b border-blue-900 pb-2">
-                            <h3 class="text-neon font-bold text-lg">${formatDateIndo(state.historySelectedDate)}</h3>
-                            <span class="text-blue-400 text-sm">${getDayName(state.historySelectedDate)}</span>
-                        </div>
 
-                        <!-- Reflection History -->
-                        <div class="bg-navy p-4 rounded-xl border border-blue-800">
-                             <div class="flex items-center gap-2 mb-2 text-purple-400">
-                                <i data-lucide="brain-circuit" class="w-4 h-4"></i>
-                                <h4 class="font-bold text-xs uppercase">Refleksi</h4>
-                            </div>
-                            <p class="text-white text-sm italic">
-                                ${selectedReflection ? `"${selectedReflection.text}"` : '<span class="text-blue-700">Tidak ada refleksi.</span>'}
-                            </p>
-                        </div>
-                        
-                        <!-- Tasks History -->
-                        <div class="space-y-3">
-                            <h4 class="font-bold text-xs text-blue-400 uppercase tracking-wide">Misi Selesai</h4>
-                            ${selectedTasks.length === 0 
-                                ? `<p class="text-blue-700 text-center py-4 text-xs">Tidak ada data misi.</p>`
-                                : selectedTasks.map(t => {
-                                    const diffLabel = getDifficultyLabel(t.difficulty);
-                                    const points = getPointsByDifficulty(t.difficulty);
-                                    const diffColor = getDifficultyColor(t.difficulty);
-                                    return `
-                                    <div class="p-3 rounded-xl flex items-center justify-between bg-navyLight ${t.status !== 'completed' ? 'opacity-40 grayscale' : ''}">
-                                        <div>
-                                            <p class="text-white text-sm ${t.status === 'completed' ? '' : 'line-through'}">${t.text}</p>
-                                            <span class="text-[10px] border px-1 rounded mt-1 inline-block ${diffColor}">${diffLabel}</span>
-                                        </div>
-                                        <span class="font-bold ${t.status === 'completed' ? 'text-neon' : 'text-blue-800'}">
-                                            ${t.status === 'completed' ? `+${points}` : '0'}
-                                        </span>
-                                    </div>
-                                `}).join('')
-                            }
-                        </div>
+                    <div class="font-display text-5xl mb-2 z-10 ${t.class}">
+                        ${t.code}
                     </div>
-                `;
-            }
 
-            let html = `
-                <div class="space-y-4 animate-fade-in pt-4 h-full flex flex-col">
-                    <div class="space-y-2">
-                        <div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar py-2">
-                            ${dateButtonsHtml}
+                    <div class="text-[9px] text-white font-bold tracking-[0.2em] z-10 mb-4 uppercase opacity-80">${t.name}</div>
+                    
+                    <div class="flex gap-1 w-full max-w-[60px] z-10">${bars}</div>
+                </div>`;
+            },
+
+            taskItem(t, isToday) {
+                const slot = Config.TIME_SLOTS.find(s => s.id === (t.timeSlot || 'all'));
+                const diff = Config.DIFFICULTY[t.difficulty];
+                
+                let action = '';
+                if (isToday && t.status === 'pending') {
+                    action = `
+                    <div class="flex gap-2">
+                        <button onclick="App.controller.updateTask('${t.id}','failed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonRed/30 text-neonRed flex items-center justify-center hover:bg-neonRed/20 active:scale-95 transition-all"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        <button onclick="App.controller.updateTask('${t.id}','completed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonGreen/30 text-neonGreen flex items-center justify-center hover:bg-neonGreen/20 active:scale-95 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]"><i data-lucide="check" class="w-4 h-4"></i></button>
+                    </div>`;
+                } else if (!isToday) {
+                    action = `<button onclick="App.controller.deleteTask('${t.id}')" class="text-slate-500 hover:text-neonRed p-2 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+                } else {
+                    const icon = t.status === 'completed' ? 'check-circle' : 'x-circle';
+                    const col = t.status === 'completed' ? 'text-neonGreen' : 'text-neonRed';
+                    action = `<i data-lucide="${icon}" class="${col} w-5 h-5 drop-shadow-lg"></i>`;
+                }
+
+                const opacity = t.status === 'pending' ? 'opacity-100' : 'opacity-60 grayscale hover:grayscale-0 transition-all duration-300';
+                const failBg = t.status === 'failed' ? 'bg-neonRed/5 border-neonRed/20' : '';
+
+                return `
+                <div class="glass-panel p-4 rounded-xl flex items-center justify-between ${opacity} ${failBg} mb-3 group hover:border-white/20 transition-all">
+                    <div class="flex-1 pr-3">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="text-[8px] font-mono font-bold text-slate-300 bg-slate px-1.5 py-0.5 rounded border border-white/5">${slot.label}</span>
+                            <span class="text-[8px] font-bold border px-1.5 py-0.5 rounded uppercase ${diff.color} ${diff.border} bg-white/5">${diff.label}</span>
                         </div>
+                        <p class="text-sm text-white font-medium leading-snug ${t.status === 'failed' ? 'line-through text-neonRed/70' : ''}">${t.text}</p>
                     </div>
+                    <div>${action}</div>
+                </div>`;
+            },
+
+            rankLegend() {
+                return Config.TIERS.slice().reverse().map(t => `
+                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
+                    <div class="font-display w-8 text-center text-lg ${t.class}">${t.code}</div>
                     <div class="flex-1">
-                        ${contentHtml}
+                        <div class="text-[10px] font-bold text-white uppercase tracking-wider">${t.name}</div>
                     </div>
-                </div>
-            `;
-            container.innerHTML = html;
-        }
+                </div>`).join('');
+            }
+        };
 
-        render();
+        /**
+         * ---------------------------------------------------------------------
+         * MODULE 4: CONTROLLER (STATE & LOGIC)
+         * ---------------------------------------------------------------------
+         */
+        const Controller = {
+            // Application State
+            state: {
+                view: 'home',
+                difficulty: 'easy',
+                histMonth: TimeService.getMonthKey(TimeService.getISO()), // YYYY-MM
+                histDate: null, // Selected date in history
+                tempTask: null // Holds task data during modal
+            },
+
+            // Initialization
+            init() {
+                // Initialize particle effect
+                this.initParticles();
+                this.render();
+                
+                // Background Loop (Auto-Fail Check)
+                setInterval(() => {
+                    const tasks = Store.get('tasks');
+                    if (Engine.checkAutoFail(tasks)) {
+                        Store.set('tasks', tasks);
+                        this.toast('Misi gagal karena waktu habis', 'error');
+                        if(this.state.view === 'home') this.render();
+                    }
+                }, 15000);
+            },
+
+            // --- NAVIGATION ---
+            navigate(viewId) {
+                this.state.view = viewId;
+                this.render();
+            },
+
+            setDifficulty(diffId) {
+                this.state.difficulty = diffId;
+                this.render(); // Re-render to update button UI
+            },
+
+            // --- HISTORY NAVIGATION ---
+            navMonth(offset) {
+                const [y, m] = this.state.histMonth.split('-');
+                const d = new Date(y, parseInt(m) - 1 + offset);
+                this.state.histMonth = TimeService.getMonthKey(TimeService.getISO(d));
+                this.state.histDate = null;
+                this.render();
+            },
+
+            setDate(dateISO) {
+                this.state.histDate = dateISO;
+                this.render();
+            },
+
+            // --- TASK MANAGEMENT ---
+            initTask() {
+                const input = document.getElementById('task-in');
+                const text = input.value.trim();
+                if (!text) { this.toast('Nama misi wajib diisi', 'error'); return; }
+                
+                this.state.tempTask = { text, difficulty: this.state.difficulty };
+                this.openModal();
+                input.value = '';
+            },
+
+            confirmTask(slotId) {
+                if (!this.state.tempTask) return;
+                const tasks = Store.get('tasks');
+                tasks.push({
+                    id: crypto.randomUUID(),
+                    text: this.state.tempTask.text,
+                    difficulty: this.state.tempTask.difficulty,
+                    timeSlot: slotId,
+                    date: TimeService.getTomorrow(),
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                });
+                Store.set('tasks', tasks);
+                this.closeModal();
+                this.toast('Misi dijadwalkan besok', 'success');
+                this.render();
+            },
+
+            updateTask(id, status) {
+                const tasks = Store.get('tasks');
+                const t = tasks.find(x => x.id === id);
+                if (t) {
+                    t.status = status;
+                    Store.set('tasks', tasks);
+                    
+                    if (status === 'completed') {
+                        // Check Rewards
+                        const { mon } = Engine.calcPoints(tasks);
+                        const rewards = Store.get('rewards');
+                        rewards.forEach(r => {
+                            if (r.status === 'active' && mon >= r.cost) {
+                                setTimeout(() => {
+                                    if(confirm(`Hadiah "${r.name}" tercapai! Klaim?`)) {
+                                        r.status = 'redeemed';
+                                        r.redeemedDate = TimeService.getISO();
+                                        Store.set('rewards', rewards);
+                                        this.toast(`Hadiah "${r.name}" diklaim!`, 'success');
+                                        this.render();
+                                    }
+                                }, 500);
+                            }
+                        });
+                    }
+                    this.render();
+                }
+            },
+
+            deleteTask(id) {
+                if(confirm('Hapus misi ini?')) {
+                    const tasks = Store.get('tasks').filter(t => t.id !== id);
+                    Store.set('tasks', tasks);
+                    this.toast('Misi dihapus', 'info');
+                    this.render();
+                }
+            },
+
+            // --- REFLECTION & REWARDS ---
+            saveRef() {
+                const val = document.getElementById('ref-in').value.trim();
+                if(val) {
+                    const refs = Store.get('reflections');
+                    const today = TimeService.getISO();
+                    const ex = refs.find(r => r.date === today);
+                    if(ex) ex.text = val; else refs.push({ date: today, text: val });
+                    Store.set('reflections', refs);
+                    this.toast('Refleksi tersimpan', 'success');
+                    this.render();
+                }
+            },
+
+            addReward() {
+                const n = document.getElementById('rew-n').value.trim();
+                const c = parseInt(document.getElementById('rew-c').value);
+                if(n && c) {
+                    const r = Store.get('rewards');
+                    r.push({id: crypto.randomUUID(), name: n, cost: c, status: 'active', redeemedDate: null});
+                    Store.set('rewards', r);
+                    this.toast('Target ditambahkan', 'success');
+                    this.render();
+                }
+            },
+
+            delReward(id) {
+                if(confirm('Hapus target?')) {
+                    const r = Store.get('rewards').filter(x => x.id !== id);
+                    Store.set('rewards', r);
+                    this.render();
+                }
+            },
+
+            // --- UI HELPERS ---
+            toast(msg, type='info') {
+                const el = document.getElementById('toast-container');
+                const div = document.createElement('div');
+                const cls = { success:'border-neonGreen text-neonGreen', error:'border-neonRed text-neonRed', info:'border-neonCyan text-neonCyan' };
+                const ico = { success:'check-circle', error:'alert-circle', info:'info' };
+                
+                div.className = `toast-msg border-l-4 ${cls[type]}`;
+                div.innerHTML = `<i data-lucide="${ico[type]}" class="w-5 h-5"></i><span class="text-xs font-bold text-white">${msg}</span>`;
+                
+                el.appendChild(div);
+                lucide.createIcons();
+                
+                // Animation logic
+                setTimeout(() => { 
+                    div.style.animation = 'toastOut 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards'; 
+                    setTimeout(() => div.remove(), 400); 
+                }, 3000);
+            },
+
+            openModal() {
+                const m = document.getElementById('modal-container');
+                m.innerHTML = `
+                <div class="bg-charcoal border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-2xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto view-transition relative">
+                    <button onclick="App.controller.closeModal()" class="absolute top-6 right-6 text-slate-500 hover:text-white bg-slate-800/50 p-2 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    <div class="mb-6"><h3 class="text-xl font-bold text-white mb-1">Time Protocol</h3><p class="text-slate-400 text-xs font-mono">Pilih slot waktu:</p></div>
+                    <div class="grid grid-cols-2 gap-2 h-64 overflow-y-auto custom-scroll pr-1">
+                        ${Config.TIME_SLOTS.map(s => `<button onclick="App.controller.confirmTask('${s.id}')" class="glass-panel p-3 rounded-xl hover:border-neonCyan hover:bg-slate-800 text-left group active:scale-95 transition-all"><span class="text-neonCyan font-mono font-bold text-sm block group-hover:text-white transition-colors">${s.label}</span><span class="text-slate-300 text-[10px] block opacity-70">${s.range}</span></button>`).join('')}
+                    </div>
+                </div>`;
+                m.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+                lucide.createIcons();
+            },
+
+            closeModal() {
+                const m = document.getElementById('modal-container');
+                m.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+                setTimeout(() => m.innerHTML='', 300);
+            },
+
+            // --- PARTICLES FX ---
+            initParticles() {
+                const canvas = document.getElementById('particle-canvas');
+                const ctx = canvas.getContext('2d');
+                let width, height;
+                let particles = [];
+
+                const resize = () => {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = window.innerHeight;
+                };
+                window.addEventListener('resize', resize);
+                resize();
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * width;
+                        this.y = Math.random() * height;
+                        this.vx = (Math.random() - 0.5) * 0.5;
+                        this.vy = (Math.random() - 0.5) * 0.5;
+                        this.size = Math.random() * 2;
+                        this.alpha = Math.random() * 0.5;
+                    }
+                    update() {
+                        this.x += this.vx;
+                        this.y += this.vy;
+                        if(this.x < 0) this.x = width;
+                        if(this.x > width) this.x = 0;
+                        if(this.y < 0) this.y = height;
+                        if(this.y > height) this.y = 0;
+                    }
+                    draw() {
+                        ctx.fillStyle = `rgba(6, 182, 212, ${this.alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                for(let i=0; i<30; i++) particles.push(new Particle());
+
+                const animate = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    particles.forEach(p => { p.update(); p.draw(); });
+                    requestAnimationFrame(animate);
+                };
+                animate();
+            },
+
+            // --- MAIN RENDER ---
+            render() {
+                // Fetch Data
+                const tasks = Store.get('tasks');
+                const rewards = Store.get('rewards');
+                const reflections = Store.get('reflections');
+                
+                const today = TimeService.getISO();
+                const monthKey = TimeService.getMonthKey(today);
+
+                // Update Header
+                const hMonth = document.getElementById('header-month');
+                if(hMonth) hMonth.innerText = TimeService.formatMonth(monthKey);
+
+                // Update Nav State
+                const navInner = document.getElementById('nav-inner');
+                if(navInner) {
+                    const tabs = [{id:'home',l:'PETA',i:'map'},{id:'rank',l:'RANK',i:'swords'},{id:'rewards',l:'GIFT',i:'gift'},{id:'history',l:'LOGS',i:'history'}];
+                    navInner.innerHTML = tabs.map(t => {
+                        const act = this.state.view === t.id;
+                        return `<button onclick="App.controller.navigate('${t.id}')" class="nav-item ${act?'active':''} flex flex-col items-center gap-1.5 p-2 w-16 group"><i data-lucide="${t.i}" class="nav-icon w-5 h-5"></i><span class="text-[8px] font-bold tracking-widest group-hover:text-white">${t.l}</span><div class="nav-indicator"></div></button>`;
+                    }).join('');
+                }
+
+                // Route View
+                const viewport = document.getElementById('app-viewport');
+                if(!viewport) return;
+
+                if (this.state.view === 'home') {
+                    const pts = Engine.calcPoints(tasks);
+                    const rnk = Engine.calcRank(monthKey, tasks);
+                    const ref = reflections.find(r => r.date === today);
+                    const tToday = tasks.filter(t => t.date === today);
+                    const tTom = tasks.filter(t => t.date === TimeService.getTomorrow());
+
+                    const diffBtn = (d) => {
+                        const act = this.state.difficulty === d;
+                        const c = Config.DIFFICULTY[d];
+                        return `<button onclick="App.controller.setDifficulty('${d}')" class="flex-1 py-2 rounded-lg text-[10px] font-bold border uppercase transition-all ${act ? `bg-white/10 text-white shadow-[0_0_10px_currentColor] ${c.border}` : 'border-slate-700 text-slate-500'}" style="${act?`color:${c.hex}`:''}">${c.label}</button>`;
+                    };
+
+                    viewport.innerHTML = `
+                    <div class="space-y-8 pb-10 view-transition">
+                        <!-- Top Stats -->
+                        <div class="flex gap-4">${Components.rankCard('EXECUTION', rnk.exec, 'swords')}${Components.rankCard('CONSISTENCY', rnk.cons, 'zap')}</div>
+                        
+                        <!-- Points Banner -->
+                        <div class="glass-panel p-5 rounded-xl flex items-center justify-between relative overflow-hidden">
+                            <div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-neonCyan/10 to-transparent"></div>
+                            <div class="relative z-10"><div class="text-[9px] text-neonCyan font-bold uppercase tracking-widest mb-1">Poin Hari Ini</div><div class="text-4xl font-mono font-bold text-white drop-shadow-md">${pts.cur} <span class="text-xs text-slate-500 font-sans font-normal">PTS</span></div></div>
+                            <div class="relative z-10 w-12 h-12 rounded-full bg-slate border border-white/10 flex items-center justify-center"><i data-lucide="activity" class="text-neonCyan w-6 h-6"></i></div>
+                        </div>
+
+                        <!-- Monthly Stats -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="glass-panel p-4 flex flex-col items-center border-l-2 border-slate-600"><span class="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Bulan Lalu</span><span class="text-xl font-mono font-bold text-slate-200">${pts.last}</span></div>
+                            <div class="glass-panel p-4 flex flex-col items-center border-l-2 border-neonCyan"><span class="text-[8px] text-neonCyan uppercase tracking-widest mb-1">Bulan Ini</span><span class="text-xl font-mono font-bold text-white">${pts.mon}</span></div>
+                        </div>
+
+                        <!-- Reflection -->
+                        ${ref ? `<div class="glass-panel p-5 rounded-xl border-l-4 border-l-neonPurple"><div class="flex items-center gap-2 mb-2 text-neonPurple"><i data-lucide="brain-circuit" class="w-4 h-4"></i><span class="text-[10px] font-bold uppercase tracking-widest">LOG REFLEKSI</span></div><p class="text-sm text-slate-200 italic">"${ref.text}"</p></div>` : 
+                        `<div class="p-5 rounded-xl border border-dashed border-slate-700 bg-slate/20"><label class="block text-slate-400 text-[10px] font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><i data-lucide="edit-3" class="w-3 h-3"></i> Refleksi Wajib</label><div class="flex gap-2"><input id="ref-in" type="text" placeholder="Apa yang dipelajari?" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none"><button onclick="App.controller.saveRef()" class="bg-neonPurple text-white px-4 rounded-lg shadow-lg"><i data-lucide="save" class="w-4 h-4"></i></button></div></div>`}
+
+                        <!-- Today Tasks -->
+                        <div>
+                            <div class="flex justify-between mb-4 items-end border-b border-white/5 pb-2"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="crosshair" class="w-4 h-4 text-neonCyan"></i> MISI HARI INI</h2><span class="text-[9px] font-bold text-slate-500 bg-slate px-2 py-1 rounded border border-white/5">${tToday.length} TUGAS</span></div>
+                            <div class="space-y-0">${tToday.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">TIDAK ADA DATA</div>' : tToday.map(t => Components.taskItem(t, true)).join('')}</div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="flex items-center justify-center opacity-20 py-2"><div class="h-px bg-white w-full"></div><div class="mx-4 text-[9px] font-mono text-white whitespace-nowrap">NEXT CYCLE</div><div class="h-px bg-white w-full"></div></div>
+
+                        <!-- Tomorrow Plan -->
+                        <div>
+                            <h2 class="text-sm font-bold text-white mb-4 flex items-center gap-2"><i data-lucide="sunrise" class="w-4 h-4 text-neonGold"></i> PERENCANAAN BESOK</h2>
+                            <div class="glass-panel p-5 rounded-xl space-y-4 mb-4">
+                                <input id="task-in" type="text" placeholder="Input nama misi..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
+                                <div class="flex gap-2">${['easy','medium','hard'].map(diffBtn).join('')}</div>
+                                <button onclick="App.controller.promptTask()" class="w-full btn-action bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian font-bold py-3 rounded-lg text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.3)] flex justify-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Lanjut ke Waktu</button>
+                            </div>
+                            <div class="space-y-0">${tTom.map(t => Components.taskItem(t, false)).join('')}</div>
+                        </div>
+                    </div>`;
+                } 
+                else if (this.state.view === 'rank') {
+                    const rnk = Engine.calcRank(monthKey, tasks);
+                    let hHtml = '';
+                    // History
+                    for(let i=1; i<=3; i++) {
+                        const d = new Date(); d.setMonth(d.getMonth()-i);
+                        const k = TimeService.getISO(d).slice(0,7);
+                        const r = Engine.calcRank(k, tasks);
+                        hHtml += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between mb-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24">${TimeService.formatMonth(k)}</span><div class="flex gap-4"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonCyan"></span><span class="font-display text-white ${r.exec.tier.class}">${r.exec.tier.code}</span></div><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonPurple"></span><span class="font-display text-white ${r.cons.tier.class}">${r.cons.tier.code}</span></div></div></div>`;
+                    }
+
+                    viewport.innerHTML = `
+                    <div class="space-y-8 view-transition pt-4">
+                        <div class="text-center"><div class="inline-block px-6 py-2 rounded-full border border-neonCyan/30 bg-neonCyan/10 backdrop-blur-md mb-2"><h2 class="text-neonCyan font-black text-sm uppercase tracking-[0.2em] drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">${TimeService.formatMonth(monthKey)}</h2></div><p class="text-[10px] text-slate-500 uppercase tracking-widest">Laporan Kinerja Bulanan</p></div>
+                        <div class="flex flex-col gap-4">${Components.rankCard('EXECUTION RANK', rnk.exec, 'swords')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2 mb-2">SYARAT: SEMUA SELESAI (2x)</div>${Components.rankCard('CONSISTENCY RANK', rnk.cons, 'zap')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2">SYARAT: MINIMAL 1 SELESAI (2x)</div></div>
+                        <div class="pt-4 border-t border-white/5"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="archive" class="w-3 h-3"></i> Arsip Bulanan</h3>${hHtml}</div>
+                        <div class="pt-4 border-t border-white/5"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="list" class="w-3 h-3"></i> Codex Pangkat</h3><div class="bg-charcoal/50 p-2 rounded-xl border border-white/5 h-64 overflow-y-auto custom-scroll">${Components.rankLegend()}</div></div>
+                    </div>`;
+                }
+                else if (this.state.view === 'rewards') {
+                    const { mon } = Engine.calcPoints(tasks);
+                    const active = rewards.filter(r => r.status === 'active');
+                    const redeemed = rewards.filter(r => r.status === 'redeemed').sort((a,b)=>new Date(b.redeemedDate)-new Date(a.redeemedDate));
+                    
+                    viewport.innerHTML = `
+                    <div class="space-y-6 view-transition pt-4">
+                        <div class="glass-panel p-8 rounded-2xl text-center relative overflow-hidden"><div class="absolute inset-0 bg-gradient-to-br from-neonCyan/10 to-transparent"></div><p class="text-neonCyan mb-2 text-[10px] uppercase tracking-[0.3em] font-bold relative z-10">SALDO POIN</p><p class="text-6xl font-black text-white drop-shadow-[0_0_20px_rgba(6,182,212,0.5)] font-mono relative z-10">${TimeService.formatCurrency(mon)}</p></div>
+                        <div class="space-y-2"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonCyan">Target Baru</h3><div class="glass-panel p-4 rounded-xl space-y-3"><input id="rew-n" type="text" placeholder="Nama hadiah..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><div class="flex gap-2"><input id="rew-c" type="number" placeholder="Harga" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><button onclick="App.controller.addReward()" class="bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian px-5 rounded-lg font-bold transition-all shadow-lg"><i data-lucide="plus" class="w-5 h-5"></i></button></div></div></div>
+                        <div class="space-y-3"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonPurple">Wishlist</h3>${active.length===0?'<div class="text-center py-8 text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">KOSONG</div>':active.map(r=>{const p=Math.min((mon/r.cost)*100,100); const col=mon>=r.cost?'bg-neonGreen':'bg-gradient-to-r from-neonCyan to-neonPurple'; return `<div class="glass-panel p-4 rounded-xl relative overflow-hidden group"><div class="absolute bottom-0 left-0 h-1 ${col} transition-all duration-1000 shadow-[0_0_10px_currentColor]" style="width:${p}%"></div><div class="flex justify-between items-center relative z-10"><div><p class="text-white text-sm font-bold group-hover:text-neonCyan transition-colors">${r.name}</p><p class="text-[10px] text-slate-400 mt-1 font-mono tracking-wide">${TimeService.formatCurrency(mon)} / <span class="text-white">${TimeService.formatCurrency(r.cost)}</span></p></div><button onclick="App.controller.delReward('${r.id}')" class="text-slate-600 hover:text-neonRed transition-colors p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`}).join('')}</div>
+                        <div class="pt-4 border-t border-white/5 space-y-3"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2 border-l-2 border-slate-600">Riwayat Klaim</h3>${redeemed.length===0?'<div class="text-center py-4 text-xs text-slate-700">Belum ada.</div>':redeemed.map(r=>`<div class="glass-panel p-3 rounded-lg flex items-center justify-between opacity-70"><div><p class="text-white text-xs font-bold">${r.name}</p><p class="text-[9px] text-slate-500">${TimeService.formatDate(r.redeemedDate)}</p></div><div class="text-neonGreen text-[10px] font-mono flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> TUKAR</div></div>`).join('')}</div>
+                    </div>`;
+                }
+                else if (this.state.view === 'history') {
+                    const [hy, hm] = this.state.histMonth.split('-');
+                    const dim = new Date(hy, hm, 0).getDate();
+                    const fDay = new Date(hy, parseInt(hm)-1, 1).getDay();
+                    const offset = fDay===0?6:fDay-1;
+                    const days = Array.from({length:dim},(_,i)=>`${this.state.histMonth}-${String(i+1).padStart(2,'0')}`);
+                    const sd = this.state.histDate;
+                    const sTasks = sd ? tasks.filter(t=>t.date===sd) : [];
+                    const sRef = sd ? reflections.find(r=>r.date===sd) : null;
+
+                    let grid = '';
+                    for(let i=0;i<offset;i++) grid+=`<div class="aspect-square"></div>`;
+                    days.forEach(d => {
+                        const dayTasks = tasks.filter(t=>t.date===d);
+                        const has = dayTasks.length>0;
+                        const all = has && dayTasks.every(t=>t.status==='completed');
+                        const fail = dayTasks.some(t=>t.status==='failed');
+                        let bg='bg-slate-800/30 text-slate-500', br='border-transparent';
+                        if(has) { if(all){bg='bg-neonGreen/20 text-white';br='border-neonGreen/50'} else if(fail){bg='bg-neonRed/20 text-white';br='border-neonRed/50'} else {bg='bg-neonPurple/20 text-white';br='border-neonPurple/50'} }
+                        if(sd===d) { bg='bg-neonCyan text-obsidian font-bold shadow-[0_0_10px_rgba(6,182,212,0.5)]'; br='border-white'; }
+                        grid+=`<button onclick="App.controller.setDate('${d}')" class="cal-cell ${sd===d?'active':''} aspect-square rounded-lg flex items-center justify-center text-xs border ${br} ${bg} transition-all hover:scale-105 active:scale-95">${new Date(d).getDate()}</button>`;
+                    });
+
+                    viewport.innerHTML = `
+                    <div class="h-full flex flex-col pt-2 view-transition">
+                        <div class="flex items-center justify-between glass-panel p-2 rounded-xl mb-4"><button onclick="App.controller.navMonth(-1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-left" class="w-5 h-5"></i></button><span class="text-white font-black text-sm tracking-[0.2em]">${TimeService.formatMonth(this.state.histMonth)}</span><button onclick="App.controller.navMonth(1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-right" class="w-5 h-5"></i></button></div>
+                        <div class="grid grid-cols-7 gap-1 text-center mb-2">${['SEN','SEL','RAB','KAM','JUM','SAB','MIN'].map(d=>`<div class="text-[8px] font-bold text-slate-500 tracking-wider">${d}</div>`).join('')}</div>
+                        <div class="grid grid-cols-7 gap-1.5 mb-6">${grid}</div>
+                        <div class="flex-1 space-y-4 overflow-y-auto hide-scroll pb-20 relative border-t border-white/5 pt-4">
+                            ${!sd ? `<div class="text-center text-slate-600 text-xs font-mono pt-10 flex flex-col items-center gap-2"><i data-lucide="calendar-search" class="w-8 h-8 opacity-50"></i>PILIH TANGGAL</div>` : 
+                            `<div class="flex justify-between items-center mb-2"><h3 class="text-neonCyan font-bold text-lg">${TimeService.formatDate(sd)}</h3><span class="text-[10px] bg-slate px-2 py-1 rounded text-slate-400 font-mono border border-slate-700">LOG</span></div>
+                            <div class="glass-panel p-4 rounded-xl mb-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-3 opacity-10"><i data-lucide="brain-circuit" class="w-12 h-12 text-white"></i></div><div class="text-[9px] text-neonPurple font-bold uppercase mb-2 tracking-wider">Refleksi</div><p class="text-slate-300 text-sm italic relative z-10">"${sRef ? sRef.text : 'Tidak ada catatan.'}"</p></div>
+                            <div class="space-y-0">${sTasks.length === 0 ? '<p class="text-center text-xs text-slate-600 py-8">Tidak ada misi.</p>' : sTasks.map(t => Components.taskItem(t, false)).join('')}</div>`}
+                        </div>
+                    </div>`;
+                }
+
+                lucide.createIcons();
+            }
+        };
+
+        /**
+         * ---------------------------------------------------------------------
+         * INITIALIZATION
+         * ---------------------------------------------------------------------
+         */
+        // Create global App instance
+        const App = { controller: Controller };
+        
+        // Start
+        window.addEventListener('DOMContentLoaded', () => {
+            App.controller.init();
+        });
+
     </script>
 </body>
 </html>
