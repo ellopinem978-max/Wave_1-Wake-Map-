@@ -1,28 +1,21 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#020617">
-    <meta name="description" content="Wake Map - Titanium Execution Protocol">
-    <title>Wake Map - Titanium Edition</title>
+    <title>Wake Map - Final Architect</title>
     
-    <!-- 
-        EXTERNAL DEPENDENCIES 
-        Using minimal external deps to keep the core pure.
-    -->
+    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- TYPOGRAPHY -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Audiowide&display=swap" rel="stylesheet">
     
-    <!-- TAILWIND CONFIGURATION -->
+    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -31,44 +24,34 @@
                         display: ['Audiowide', 'cursive'],
                     },
                     colors: {
-                        void: "#000000",
                         obsidian: "#020617",
                         charcoal: "#0f172a",
                         slate: "#1e293b",
                         iron: "#334155",
-                        steel: "#475569",
                         neonCyan: "#06b6d4",
                         neonPurple: "#8b5cf6",
                         neonGold: "#f59e0b",
                         neonRed: "#ef4444",
                         neonGreen: "#10b981",
-                        glass: "rgba(15, 23, 42, 0.75)",
-                        glassBorder: "rgba(255, 255, 255, 0.08)",
-                        glassHighlight: "rgba(255, 255, 255, 0.03)",
-                    },
-                    backgroundImage: {
-                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-                        'luxury-gradient': 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%)',
+                        glass: "rgba(15, 23, 42, 0.65)",
                     },
                     animation: {
-                        'float': 'float 8s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'spin-slow': 'spin 12s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite alternate',
                         'shimmer': 'shimmer 2.5s linear infinite',
-                        'glow-pulse': 'glowPulse 3s infinite alternate',
                     },
                     keyframes: {
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
+                            '50%': { transform: 'translateY(-6px)' },
+                        },
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 5px currentColor' },
+                            '100%': { boxShadow: '0 0 20px currentColor' }
                         },
                         shimmer: {
                             '0%': { backgroundPosition: '-200% 0' },
                             '100%': { backgroundPosition: '200% 0' },
-                        },
-                        glowPulse: {
-                            '0%': { textShadow: '0 0 5px currentColor' },
-                            '100%': { textShadow: '0 0 20px currentColor, 0 0 10px #fff' }
                         }
                     }
                 }
@@ -76,351 +59,126 @@
         }
     </script>
 
-    <!-- 
-        ========================================================================
-        VISUAL ENGINEERING (CSS)
-        Extensive styling for premium feel and specific rank identities.
-        ========================================================================
-    -->
+    <!-- CORE STYLESHEET -->
     <style>
-        /* --- RESET & VARS --- */
-        :root {
-            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-            --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
-            --header-height: 80px;
-            --nav-height: 88px;
-        }
-
-        body {
-            background-color: #020617;
-            color: #e2e8f0;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* --- UTILITIES --- */
+        :root { --ease-expo: cubic-bezier(0.19, 1, 0.22, 1); }
+        body { background-color: #020617; color: #e2e8f0; overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .backdrop-blur-xl { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
-        .text-glow { text-shadow: 0 0 10px currentColor; }
-        
-        /* --- BACKGROUND FX --- */
-        .ambient-layer {
-            position: fixed; inset: 0; pointer-events: none; z-index: 0;
-            background: 
-                radial-gradient(circle at 0% 0%, rgba(6,182,212,0.08) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(139,92,246,0.08) 0%, transparent 50%);
-        }
-        
-        #particle-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1; opacity: 0.4;
-        }
+        /* Components */
+        .glass-card { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); transition: all 0.3s var(--ease-expo); }
+        .glass-card:active { transform: scale(0.98); background: rgba(15, 23, 42, 0.85); }
+        .btn-action { position: relative; overflow: hidden; transition: all 0.3s var(--ease-expo); }
+        .btn-action:active { transform: scale(0.96); }
 
-        /* --- GLASS COMPONENTS --- */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 
-                0 4px 6px -1px rgba(0, 0, 0, 0.1), 
-                0 2px 4px -1px rgba(0, 0, 0, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            transition: all 0.3s var(--ease-out-expo);
-        }
-        
-        .glass-panel:active {
-            background: rgba(15, 23, 42, 0.8);
-            transform: scale(0.995);
-        }
+        /* Ranks */
+        .rank-iron { color: #64748b; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+        .rank-bronze { color: #b45309; filter: drop-shadow(0 0 5px rgba(180,83,9,0.3)); }
+        .rank-silver { color: #cbd5e1; text-shadow: 0 0 8px rgba(203,213,225,0.4); }
+        .rank-gold { color: #facc15; text-shadow: 0 0 12px rgba(250,204,21,0.5); }
+        .rank-platinum { background: linear-gradient(135deg, #e0f2fe, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 8px rgba(14,165,233,0.5)); }
+        .rank-diamond { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(139,92,246,0.6)); }
+        .rank-max { color: #fff; text-shadow: 0 0 10px #fff, 0 0 20px #22d3ee; animation: pulseGlow 2s infinite alternate; }
 
-        .glass-panel.interactive:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-        }
+        /* Nav */
+        .nav-item { transition: all 0.3s var(--ease-expo); color: #64748b; }
+        .nav-item.active { color: #06b6d4; transform: translateY(-4px); }
+        .nav-indicator { width: 4px; height: 4px; background: #06b6d4; border-radius: 50%; position: absolute; bottom: -8px; transform: scale(0); transition: 0.3s; }
+        .nav-item.active .nav-indicator { transform: scale(1); }
 
-        /* --- RANK VISUAL SYSTEM (15 TIERS - UPDATED) --- */
-        .rank-display { font-family: 'Audiowide', cursive; letter-spacing: 0.05em; }
+        /* Tier Styles */
+        .tier-f { color: #4B5563; filter: grayscale(1); } .tier-e { color: #6B7280; filter: none; }
+        .tier-d { color: #7C5C3B; } .tier-c { color: #4B7F52; text-shadow: 0 1px 2px rgba(75,127,82,0.3); }
+        .tier-b { color: #3B82F6; text-shadow: 0 0 8px rgba(59,130,246,0.4); } .tier-a { color: #2563EB; text-shadow: 0 0 12px rgba(37,99,235,0.6); }
+        .tier-s { color: #7C3AED; text-shadow: 0 0 15px rgba(124,58,237,0.6); } .tier-ss { background: linear-gradient(to bottom, #9333EA, #D946EF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 8px rgba(147,51,234,0.6)); }
+        .tier-ex { background: linear-gradient(135deg, #FEF08A 20%, #FACC15 50%, #A16207 80%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 1px 2px rgba(234,179,8,0.5)); }
+        .tier-mr { background: linear-gradient(45deg, #CA8A04 0%, #FDE047 50%, #CA8A04 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 4s linear infinite; filter: drop-shadow(0 0 5px rgba(202,138,4,0.6)); }
+        .tier-ur { color: #22D3EE; text-shadow: 0 0 5px #fff, 0 0 15px #22D3EE, 0 0 25px #0891B2; animation: glow-pulse 3s infinite; }
+        .tier-exr { color: #DC2626; text-shadow: 0 0 10px #EF4444, 0 0 20px #7F1D1D; filter: contrast(1.2); }
+        .tier-hs { background: linear-gradient(to right, #B91C1C, #F59E0B, #B91C1C); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 6s linear infinite; filter: drop-shadow(0 0 8px rgba(245,158,11,0.4)); }
+        .tier-ps { color: #F9FAFB; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.4); }
+        .tier-max { background: linear-gradient(to bottom, #FFFFFF 30%, #FDE68A 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px #FDE68A, 0 0 40px #F59E0B; position: relative; animation: float 4s ease-in-out infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 5px currentColor; } 50% { text-shadow: 0 0 20px currentColor, 0 0 10px #fff; } }
 
-        /* 1. F — Failing (Abu-abu gelap matte) */
-        .tier-f { 
-            color: #4B5563; 
-            filter: grayscale(100%);
-            text-shadow: none;
-        }
-        
-        /* 2. E — Elementary (Abu-abu muda matte) */
-        .tier-e {
-            color: #6B7280;
-            filter: none;
-            text-shadow: none;
-        }
-        
-        /* 3. D — Developing (Cokelat kusam matte) */
-        .tier-d {
-            color: #7C5C3B;
-            text-shadow: none;
-        }
-        
-        /* 4. C — Capable (Hijau zaitun matte -> soft highlight) */
-        .tier-c {
-            color: #4B7F52;
-            text-shadow: 0 1px 2px rgba(75, 127, 82, 0.3);
-        }
-        
-        /* 5. B — Balanced (Biru pudar soft glow) */
-        .tier-b {
-            color: #3B82F6;
-            text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
-        }
-        
-        /* 6. A — Advanced (Biru terang soft glow konsisten) */
-        .tier-a {
-            color: #2563EB;
-            text-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
-        }
+        /* Toast */
+        #toast-layer { position: fixed; top: 20px; left: 0; right: 0; pointer-events: none; z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .toast-msg { background: rgba(15,23,42,0.95); backdrop-filter: blur(8px); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(-20px); opacity: 0; animation: toastEnter 0.4s forwards; }
+        @keyframes toastEnter { to { transform: translateY(0); opacity: 1; } }
+        @keyframes toastExit { to { transform: translateY(-20px); opacity: 0; } }
 
-        /* 7. S — Superior (Ungu elegan glow halus) */
-        .tier-s {
-            color: #7C3AED;
-            text-shadow: 0 0 15px rgba(124, 58, 237, 0.6);
-        }
-
-        /* 8. SS — Supremely Skilled (Ungu -> magenta glow lembut + depth) */
-        .tier-ss {
-            background: linear-gradient(to bottom, #9333EA, #D946EF);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.6));
-        }
-
-        /* 9. EX — Exceptional (Emas muda metallic sheen ringan) */
-        .tier-ex {
-            background: linear-gradient(135deg, #FEF08A 20%, #FACC15 50%, #A16207 80%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 1px 2px rgba(234, 179, 8, 0.5));
-        }
-
-        /* 10. MR — Master Rank (Emas tua metallic + shimmer pelan) */
-        .tier-mr {
-            background: linear-gradient(45deg, #CA8A04 0%, #FDE047 50%, #CA8A04 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shimmer 4s linear infinite;
-            filter: drop-shadow(0 0 5px rgba(202, 138, 4, 0.6));
-        }
-
-        /* 11. UR — Ultra Rare (Cyan kristal glow terang + shimmer) */
-        .tier-ur {
-            color: #22D3EE;
-            text-shadow: 0 0 5px #fff, 0 0 15px #22D3EE, 0 0 25px #0891B2;
-            animation: glow-pulse 3s infinite;
-        }
-
-        /* 12. EXR — Extreme Rank (Merah ruby radiant glow terkontrol) */
-        .tier-exr {
-            color: #DC2626;
-            text-shadow: 0 0 10px #EF4444, 0 0 20px #7F1D1D;
-            filter: contrast(1.2);
-        }
-
-        /* 13. HS — High Spec (Merah -> emas animated gradient glow pelan) */
-        .tier-hs {
-            background: linear-gradient(to right, #B91C1C, #F59E0B, #B91C1C);
-            background-size: 200% auto;
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shimmer 6s linear infinite;
-            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
-        }
-
-        /* 14. PS — Peak State (Putih mutiara halo glow + shine) */
-        .tier-ps {
-            color: #F9FAFB;
-            text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.4);
-        }
-
-        /* 15. MAX — Maximum (Emas putih radiant glow + subtle particle) */
-        .tier-max {
-            background: linear-gradient(to bottom, #FFFFFF 30%, #FDE68A 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 15px #FDE68A, 0 0 40px #F59E0B;
-            position: relative;
-            animation: float 4s ease-in-out infinite;
-        }
-
-        @keyframes text-shimmer {
-            to { background-position: 200% center; }
-        }
-        @keyframes pulse-radiance {
-            from { filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5)); }
-            to { filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.8)); }
-        }
-
-        /* --- NAVIGATION DOCK --- */
-        .nav-dock {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
-        }
-        
-        .nav-item {
-            position: relative;
-            color: #64748b;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .nav-item.active {
-            color: #06b6d4;
-            transform: translateY(-4px);
-        }
-        .nav-item.active .nav-icon {
-            filter: drop-shadow(0 4px 8px rgba(6,182,212,0.4));
-            stroke-width: 2.5px;
-        }
-        .nav-indicator {
-            width: 4px; height: 4px; background: #06b6d4; border-radius: 50%;
-            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%) scale(0);
-            transition: transform 0.3s ease; box-shadow: 0 0 8px #06b6d4;
-        }
-        .nav-item.active .nav-indicator { transform: translateX(-50%) scale(1); }
-
-        /* --- TOAST NOTIFICATIONS --- */
-        #toast-container {
-            position: fixed; top: 20px; left: 0; right: 0;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            pointer-events: none; z-index: 100;
-        }
-        .toast-msg {
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(12px);
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transform: translateY(-20px) scale(0.95);
-            opacity: 0;
-            animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            display: flex; align-items: center; gap: 12px;
-            pointer-events: auto;
-        }
-        @keyframes toastIn { to { transform: translateY(0) scale(1); opacity: 1; } }
-        @keyframes toastOut { to { transform: translateY(-20px) scale(0.9); opacity: 0; } }
-
-        /* --- PAGE TRANSITIONS --- */
-        .view-transition { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- CALENDAR GRID --- */
+        /* Calendar */
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-cell {
-            aspect-ratio: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            border-radius: 8px; font-size: 10px; font-weight: 700;
-            border: 1px solid transparent; transition: all 0.2s;
-            position: relative;
-        }
-        .cal-cell.active { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.5); color: #fff; }
-        .cal-cell:hover { background: rgba(255,255,255,0.05); }
-        .cal-dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; }
-        
-        .dot-success { background: #10b981; box-shadow: 0 0 4px #10b981; }
-        .dot-fail { background: #ef4444; }
-        .dot-partial { background: #8b5cf6; }
+        .cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid transparent; transition: all 0.2s; position: relative; }
+        .cal-cell.active { background: rgba(6,182,212,0.2); border-color: #06b6d4; color: #fff; }
+
+        /* Particle */
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.3; }
+        .ambient-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 50%); }
     </style>
 </head>
 <body class="font-sans text-sm antialiased text-textMain">
 
-    <!-- 
-        APP SHELL
-        The persistent container that holds all views.
-    -->
     <div id="app-root" class="relative w-full max-w-md mx-auto h-screen flex flex-col bg-obsidian shadow-2xl border-x border-white/5 overflow-hidden">
-        
-        <!-- Interactive Background -->
         <canvas id="particle-canvas"></canvas>
         <div class="ambient-layer"></div>
 
-        <!-- 1. HEADER -->
         <header id="app-header" class="flex-none pt-10 pb-4 px-6 z-20 border-b border-white/5 bg-gradient-to-b from-obsidian via-obsidian/95 to-transparent backdrop-blur-sm">
-            <!-- Dynamic Header Content -->
+             <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2 font-display">
+                        <span class="text-neonCyan drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">WAKE</span>MAP
+                    </h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neonGreen opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-neonGreen"></span>
+                        </span>
+                        <!-- Menampilkan Tanggal WIB untuk konfirmasi user -->
+                        <p id="header-status" class="text-neonCyan/70 text-[10px] font-mono tracking-[0.2em] uppercase">SYSTEM ONLINE</p>
+                    </div>
+                </div>
+                <div class="glass-card px-4 py-2 rounded-lg group hover:border-neonCyan/30 transition-colors cursor-default">
+                    <span id="header-month" class="text-[10px] font-bold text-white uppercase tracking-[0.15em] group-hover:text-neonCyan transition-colors">...</span>
+                </div>
+            </div>
         </header>
 
-        <!-- 2. MAIN VIEWPORT -->
         <main id="app-viewport" class="flex-1 overflow-y-auto px-5 py-6 hide-scroll relative z-10 space-y-8 scroll-smooth">
-            <!-- Views are injected here -->
         </main>
 
-        <!-- 3. NAVIGATION -->
         <nav id="app-nav" class="flex-none h-24 px-6 pb-6 pt-2 z-30 bg-gradient-to-t from-obsidian via-obsidian/95 to-transparent pointer-events-none">
-            <div id="nav-inner" class="glass-panel w-full h-full rounded-2xl flex items-center justify-around px-2 shadow-2xl pointer-events-auto">
-                <!-- Nav Items injected here -->
+            <div id="nav-inner" class="glass-card w-full h-full rounded-2xl flex items-center justify-around px-2 shadow-2xl backdrop-blur-xl pointer-events-auto">
             </div>
         </nav>
 
-        <!-- 4. OVERLAYS -->
-        <div id="toast-container"></div>
-        <div id="modal-container" class="fixed inset-0 z-50 pointer-events-none flex items-end sm:items-center justify-center transition-all duration-300 opacity-0 invisible backdrop-blur-sm bg-black/60"></div>
-
+        <div id="toast-layer"></div>
+        <div id="modal-layer" class="fixed inset-0 z-50 pointer-events-none flex items-end sm:items-center justify-center transition-all duration-300 opacity-0 invisible backdrop-blur-sm bg-black/60"></div>
     </div>
 
-    <!-- 
-        ========================================================================
-        JAVASCRIPT ARCHITECTURE
-        Modular, Service-Oriented, and Robust
-        ========================================================================
-    -->
     <script>
-        /**
-         * ---------------------------------------------------------------------
-         * MODULE 1: CONSTANTS & CONFIG
-         * Single source of truth for the application
-         * ---------------------------------------------------------------------
-         */
         const Config = {
-            VERSION: '4.0.0-MAGNUM',
-            STORAGE_PREFIX: 'wakemap_titan_',
-            
-            // Time Protocol: 2-Hour Blocks
+            PREFIX: 'wakemap_final_',
             TIME_SLOTS: [
-                { id: 'halt', label: 'HALT', range: '00:00 - 02:00', end: 2, desc: 'Deep Rest & Recovery' },
-                { id: 'void', label: 'VOID', range: '02:00 - 04:00', end: 4, desc: 'Subconscious Processing' },
-                { id: 'boot', label: 'BOOT', range: '04:00 - 06:00', end: 6, desc: 'System Initialization' },
-                { id: 'prim', label: 'PRIM', range: '06:00 - 08:00', end: 8, desc: 'Prime Mental State' },
-                { id: 'core', label: 'CORE', range: '08:00 - 10:00', end: 10, desc: 'Deep Focus Work' },
-                { id: 'flow', label: 'FLOW', range: '10:00 - 12:00', end: 12, desc: 'High Performance Flow' },
-                { id: 'idle', label: 'IDLE', range: '12:00 - 14:00', end: 14, desc: 'System Recharge' },
-                { id: 'sync', label: 'SYNC', range: '14:00 - 16:00', end: 16, desc: 'Strategic Alignment' },
-                { id: 'exec', label: 'EXEC', range: '16:00 - 18:00', end: 18, desc: 'Tactical Execution' },
-                { id: 'wind', label: 'WIND', range: '18:00 - 20:00', end: 20, desc: 'Evening Decompression' },
-                { id: 'rest', label: 'REST', range: '20:00 - 22:00', end: 22, desc: 'Recovery Mode' },
-                { id: 'fade', label: 'FADE', range: '22:00 - 24:00', end: 24, desc: 'System Shutdown' },
-                { id: 'all',  label: 'ALL',  range: '00:00 - 24:00', end: 24, desc: 'Full Day Cycle' }
+                { id: 'halt', label: 'HALT', range: '00-02', end: 2 }, { id: 'void', label: 'VOID', range: '02-04', end: 4 },
+                { id: 'boot', label: 'BOOT', range: '04-06', end: 6 }, { id: 'prim', label: 'PRIM', range: '06-08', end: 8 },
+                { id: 'core', label: 'CORE', range: '08-10', end: 10 }, { id: 'flow', label: 'FLOW', range: '10-12', end: 12 },
+                { id: 'idle', label: 'IDLE', range: '12-14', end: 14 }, { id: 'sync', label: 'SYNC', range: '14-16', end: 16 },
+                { id: 'exec', label: 'EXEC', range: '16-18', end: 18 }, { id: 'wind', label: 'WIND', range: '18-20', end: 20 },
+                { id: 'rest', label: 'REST', range: '20-22', end: 22 }, { id: 'fade', label: 'FADE', range: '22-24', end: 24 },
+                { id: 'all',  label: 'ALL',  range: '00-24', end: 24 }
             ],
-
-            // Rank Definitions (15 Tiers) - UPDATED COLORS
             TIERS: [
-                { id:0, code:'F', name:'Failing', class:'tier-f', barColor:'#4B5563' },
-                { id:1, code:'E', name:'Elementary', class:'tier-e', barColor:'#6B7280' },
-                { id:2, code:'D', name:'Developing', class:'tier-d', barColor:'#7C5C3B' },
-                { id:3, code:'C', name:'Capable', class:'tier-c', barColor:'#4B7F52' },
-                { id:4, code:'B', name:'Balanced', class:'tier-b', barColor:'#3B82F6' },
-                { id:5, code:'A', name:'Advanced', class:'tier-a', barColor:'#2563EB' },
-                { id:6, code:'S', name:'Superior', class:'tier-s', barColor:'#7C3AED' },
-                { id:7, code:'SS', name:'Supremely Skilled', class:'tier-ss', barColor:'#9333EA' },
-                { id:8, code:'EX', name:'Exceptional', class:'tier-ex', barColor:'#FACC15' },
-                { id:9, code:'MR', name:'Master Rank', class:'tier-mr', barColor:'#EAB308' },
-                { id:10, code:'UR', name:'Ultra Rare', class:'tier-ur', barColor:'#22D3EE' },
-                { id:11, code:'EXR', name:'Extreme Rank', class:'tier-exr', barColor:'#DC2626' },
-                { id:12, code:'HS', name:'High Spec', class:'tier-hs', barColor:'#F59E0B' },
-                { id:13, code:'PS', name:'Peak State', class:'tier-ps', barColor:'#F9FAFB' },
+                { id:0, code:'F', name:'Failing', class:'tier-f', barColor:'#4B5563' }, { id:1, code:'E', name:'Elementary', class:'tier-e', barColor:'#6B7280' },
+                { id:2, code:'D', name:'Developing', class:'tier-d', barColor:'#7C5C3B' }, { id:3, code:'C', name:'Capable', class:'tier-c', barColor:'#4B7F52' },
+                { id:4, code:'B', name:'Balanced', class:'tier-b', barColor:'#3B82F6' }, { id:5, code:'A', name:'Advanced', class:'tier-a', barColor:'#2563EB' },
+                { id:6, code:'S', name:'Superior', class:'tier-s', barColor:'#7C3AED' }, { id:7, code:'SS', name:'Supremely Skilled', class:'tier-ss', barColor:'#9333EA' },
+                { id:8, code:'EX', name:'Exceptional', class:'tier-ex', barColor:'#FACC15' }, { id:9, code:'MR', name:'Master Rank', class:'tier-mr', barColor:'#EAB308' },
+                { id:10, code:'UR', name:'Ultra Rare', class:'tier-ur', barColor:'#22D3EE' }, { id:11, code:'EXR', name:'Extreme Rank', class:'tier-exr', barColor:'#DC2626' },
+                { id:12, code:'HS', name:'High Spec', class:'tier-hs', barColor:'#F59E0B' }, { id:13, code:'PS', name:'Peak State', class:'tier-ps', barColor:'#F8FAFB' },
                 { id:14, code:'MAX', name:'Maximum', class:'tier-max', barColor:'#FDE68A' }
             ],
-
-            // Difficulty Settings
             DIFFICULTY: {
                 easy: { id: 'easy', label: 'Mudah', pts: 2, color: 'text-neonGreen', border: 'border-neonGreen', hex: '#10b981' },
                 medium: { id: 'medium', label: 'Sedang', pts: 4, color: 'text-neonCyan', border: 'border-neonCyan', hex: '#06b6d4' },
@@ -428,205 +186,160 @@
             }
         };
 
-        /**
-         * ---------------------------------------------------------------------
-         * MODULE 2: CORE SERVICES
-         * ---------------------------------------------------------------------
-         */
-        
-        // --- 2.1 TIME SERVICE ---
-        const TimeService = {
-            getISO: (d = new Date()) => {
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${y}-${m}-${day}`;
-            },
-            getTomorrow: () => {
-                const d = new Date(); d.setDate(d.getDate() + 1);
-                return TimeService.getISO(d);
-            },
-            getMonthKey: (iso) => iso.slice(0, 7),
+        // UTILS - FORCED WIB TIMEZONE
+        class Utils {
+            static generateId() { return crypto.randomUUID(); }
             
-            formatDate: (iso) => {
-                const d = new Date(iso);
-                return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            },
-            formatMonth: (isoMonth) => {
-                const [y, m] = isoMonth.split('-');
-                return new Date(y, parseInt(m)-1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
-            },
-            formatCurrency: (n) => new Intl.NumberFormat('id-ID').format(n)
-        };
-
-        // --- 2.2 STORAGE SERVICE ---
-        const Store = {
-            get: (key) => {
-                try { return JSON.parse(localStorage.getItem(Config.STORAGE_PREFIX + key)) || []; } 
-                catch { return []; }
-            },
-            set: (key, data) => {
-                localStorage.setItem(Config.STORAGE_PREFIX + key, JSON.stringify(data));
+            // STRICT WIB (Asia/Jakarta) TIMEZONE FORCE
+            static getWIBDate(d = new Date()) {
+                return new Date(d.toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
             }
-        };
 
-        // --- 2.3 ENGINE (LOGIC) ---
-        const Engine = {
-            // Calculates Points (Current, Monthly, Last Month)
-            calcPoints: (tasks) => {
-                const today = TimeService.getISO();
+            static getISO(d = null) {
+                // Return YYYY-MM-DD in WIB
+                const date = d ? d : new Date();
+                const options = { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' };
+                // Format returns MM/DD/YYYY or DD/MM/YYYY depending on locale, so we use en-CA for YYYY-MM-DD
+                return new Intl.DateTimeFormat('en-CA', options).format(date);
+            }
+
+            static getTomorrow() { 
+                const d = new Date(); 
+                // Add 24 hours
+                d.setDate(d.getDate() + 1); 
+                return this.getISO(d); 
+            }
+
+            static getMonthKey(iso) { return iso.slice(0, 7); }
+            
+            static formatMonth(iso) { 
+                const [y,m]=iso.split('-'); 
+                return new Date(y,parseInt(m)-1).toLocaleDateString('id-ID',{month:'long',year:'numeric'}).toUpperCase(); 
+            }
+            static formatDate(iso) { 
+                return new Date(iso).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); 
+            }
+            static formatCurrency(n) { return new Intl.NumberFormat('id-ID').format(n); }
+        }
+
+        // SERVICES
+        class Store {
+            static get(k) { try { return JSON.parse(localStorage.getItem(Config.PREFIX + k)) || []; } catch { return []; } }
+            static set(k, v) { localStorage.setItem(Config.PREFIX + k, JSON.stringify(v)); }
+        }
+
+        class Engine {
+            static calcPoints(tasks) {
+                const today = Utils.getISO();
                 const monthKey = today.slice(0, 7);
                 const d = new Date(); d.setMonth(d.getMonth() - 1);
-                const lastMonthKey = TimeService.getISO(d).slice(0, 7);
-
+                const prevMonthKey = Utils.getISO(d).slice(0,7); // Approximate prev month
+                
                 let cur = 0, mon = 0, last = 0;
                 tasks.forEach(t => {
                     if (t.status === 'completed') {
                         const pts = Config.DIFFICULTY[t.difficulty]?.pts || 0;
                         if (t.date === today) cur += pts;
                         if (t.date.startsWith(monthKey)) mon += pts;
-                        if (t.date.startsWith(lastMonthKey)) last += pts;
+                        if (t.date.startsWith(prevMonthKey)) last += pts;
                     }
                 });
                 return { cur, mon, last };
-            },
-
-            // Calculates Rank based on Monthly Data (2-Bar Logic)
-            calcRank: (monthKey, tasks) => {
-                let eTier = 0, eBar = 0; // Execution
-                let cTier = 0, cBar = 0; // Consistency
-
-                const mTasks = tasks.filter(t => t.date.startsWith(monthKey));
-                const uniqueDates = [...new Set(mTasks.map(t => t.date))].sort();
-                const today = TimeService.getISO();
-
-                uniqueDates.forEach(date => {
-                    if (date === today) return; // Don't process today until tomorrow
-
-                    const dTasks = mTasks.filter(t => t.date === date);
-                    const done = dTasks.filter(t => t.status === 'completed').length;
-                    const total = dTasks.length;
-                    const fail = dTasks.some(t => t.status === 'failed');
-
-                    // EXECUTION: Requires ALL tasks done
-                    let eWin = (done === total && total > 0);
-                    let eLose = (fail || done < total);
-
-                    if (eWin) {
-                        eBar++; if (eBar > 2) { if (eTier < 14) { eTier++; eBar = 1; } else eBar = 2; }
-                    } else if (eLose) {
-                        eBar--; if (eBar < 0) { if (eTier > 0) { eTier--; eBar = 1; } else eBar = 0; }
-                    }
-
-                    // CONSISTENCY: Requires MIN 1 task done
-                    let cWin = (done >= 1);
-                    let cLose = (done === 0);
-
-                    if (cWin) {
-                        cBar++; if (cBar > 2) { if (cTier < 14) { cTier++; cBar = 1; } else cBar = 2; }
-                    } else if (cLose) {
-                        cBar--; if (cBar < 0) { if (cTier > 0) { cTier--; cBar = 1; } else cBar = 0; }
-                    }
-                });
-
-                return {
-                    exec: { tier: Config.TIERS[eTier], bars: eBar },
-                    cons: { tier: Config.TIERS[cTier], bars: cBar }
-                };
-            },
-
-            // Auto-Fail Checker
-            checkAutoFail: (tasks) => {
-                const now = new Date();
-                const h = now.getHours();
-                const today = TimeService.getISO();
-                let changed = false;
-
-                tasks.forEach(t => {
-                    if (t.date === today && t.status === 'pending') {
-                        const slot = Config.TIME_SLOTS.find(s => s.id === (t.timeSlot || 'all'));
-                        if (slot && slot.id !== 'all' && h >= slot.end) {
-                            t.status = 'failed';
-                            changed = true;
-                        }
-                    }
-                });
-                return changed;
             }
-        };
+            
+            static calcRank(monthKey, tasks) {
+                let eTier=0, eBar=0, cTier=0, cBar=0;
+                const mTasks = tasks.filter(t => t.date.startsWith(monthKey));
+                const dates = [...new Set(mTasks.map(t => t.date))].sort();
+                const today = Utils.getISO();
 
-        /**
-         * ---------------------------------------------------------------------
-         * MODULE 3: COMPONENT FACTORY
-         * Creating HTML strings for UI elements
-         * ---------------------------------------------------------------------
-         */
-        const Components = {
-            rankCard(title, data, icon) {
+                dates.forEach(d => {
+                    if (d === today) return;
+
+                    const ts = mTasks.filter(t => t.date === d);
+                    const done = ts.filter(t => t.status === 'completed').length;
+                    const total = ts.length;
+                    const failed = ts.some(t => t.status === 'failed');
+
+                    let eRes = (done===total && total>0) ? 1 : (failed || done<total) ? -1 : 0;
+                    if(eRes===1) { eBar++; if(eBar>2) { if(eTier<14){eTier++; eBar=1;} else eBar=2; } }
+                    else if(eRes===-1) { eBar--; if(eBar<0) { if(eTier>0){eTier--; eBar=1;} else eBar=0; } }
+                    
+                    let cRes = (done>=1) ? 1 : -1;
+                    if(cRes===1) { cBar++; if(cBar>2) { if(cTier<14){cTier++; cBar=1;} else cBar=2; } }
+                    else if(cRes===-1) { cBar--; if(cBar<0) { if(cTier>0){cTier--; cBar=1;} else cBar=0; } }
+                });
+                return { exec: { tier: Config.TIERS[eTier], bars: eBar }, cons: { tier: Config.TIERS[cTier], bars: cBar } };
+            }
+
+            static checkAutoFail(tasks) {
+                const now = new Date(); // Browser time (assumed close to WIB or user local)
+                const h = now.getHours();
+                const t = Utils.getISO();
+                let chg = false;
+                tasks.forEach(x => {
+                    if(x.date === t && x.status === 'pending') {
+                        const slot = Config.TIME_SLOTS.find(s => s.id === (x.timeSlot||'all'));
+                        if(slot && slot.id!=='all' && h >= slot.end) { x.status = 'failed'; chg = true; }
+                    }
+                });
+                return chg;
+            }
+        }
+
+        // COMPONENTS
+        class ComponentFactory {
+            static rankCard(title, data, icon) {
                 const t = data.tier;
-                // Generate 2 Bars
                 let bars = '';
                 for(let i=1; i<=2; i++) {
                     const active = i <= data.bars;
                     const style = active ? `background-color:${t.barColor}; box-shadow:0 0 10px ${t.barColor}` : `background-color:#334155`;
                     bars += `<div class="w-1/2 h-1.5 rounded-full transition-all duration-500" style="${style}"></div>`;
                 }
-
                 return `
-                <div class="glass-panel p-5 rounded-2xl flex-1 flex flex-col items-center justify-between relative overflow-hidden group min-h-[140px] hover:bg-white/5 transition-colors cursor-default">
+                <div class="glass-card p-5 rounded-2xl flex-1 flex flex-col items-center justify-between relative overflow-hidden group min-h-[140px] hover:bg-white/5 transition-colors cursor-default">
                     <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    
                     <div class="flex items-center justify-between w-full mb-2 z-10">
                         <span class="text-[8px] font-mono text-slate-400 font-bold tracking-widest">${title}</span>
                         <i data-lucide="${icon}" class="w-3 h-3 text-slate-500"></i>
                     </div>
-
-                    <div class="font-display text-5xl mb-2 z-10 ${t.class}">
-                        ${t.code}
-                    </div>
-
+                    <div class="font-display text-5xl mb-2 z-10 ${t.class}">${t.code}</div>
                     <div class="text-[9px] text-white font-bold tracking-[0.2em] z-10 mb-4 uppercase opacity-80">${t.name}</div>
-                    
                     <div class="flex gap-1 w-full max-w-[60px] z-10">${bars}</div>
                 </div>`;
-            },
+            }
 
-            taskItem(t, isToday) {
-                const slot = Config.TIME_SLOTS.find(s => s.id === (t.timeSlot || 'all'));
+            static taskItem(t, isToday) {
+                const slot = Config.TIME_SLOTS.find(s=>s.id === (t.timeSlot||'all'));
                 const diff = Config.DIFFICULTY[t.difficulty];
-                
-                let action = '';
+                let act = '';
                 if (isToday && t.status === 'pending') {
-                    action = `
-                    <div class="flex gap-2">
-                        <button onclick="App.controller.updateTask('${t.id}','failed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonRed/30 text-neonRed flex items-center justify-center hover:bg-neonRed/20 active:scale-95 transition-all"><i data-lucide="x" class="w-4 h-4"></i></button>
-                        <button onclick="App.controller.updateTask('${t.id}','completed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonGreen/30 text-neonGreen flex items-center justify-center hover:bg-neonGreen/20 active:scale-95 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]"><i data-lucide="check" class="w-4 h-4"></i></button>
-                    </div>`;
+                    act = `<div class="flex gap-2"><button onclick="App.controller.updateTask('${t.id}','failed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonRed/30 text-neonRed flex items-center justify-center hover:bg-neonRed/20 active:scale-95 transition-all"><i data-lucide="x" class="w-4 h-4"></i></button><button onclick="App.controller.updateTask('${t.id}','completed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonGreen/30 text-neonGreen flex items-center justify-center hover:bg-neonGreen/20 active:scale-95 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]"><i data-lucide="check" class="w-4 h-4"></i></button></div>`;
                 } else if (!isToday) {
-                    action = `<button onclick="App.controller.deleteTask('${t.id}')" class="text-slate-500 hover:text-neonRed p-2 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+                    act = `<button onclick="App.controller.deleteTask('${t.id}')" class="text-slate-500 hover:text-neonRed p-2 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
                 } else {
-                    const icon = t.status === 'completed' ? 'check-circle' : 'x-circle';
-                    const col = t.status === 'completed' ? 'text-neonGreen' : 'text-neonRed';
-                    action = `<i data-lucide="${icon}" class="${col} w-5 h-5 drop-shadow-lg"></i>`;
+                    const i = t.status==='completed'?'check-circle':'x-circle';
+                    const c = t.status==='completed'?'text-neonGreen':'text-neonRed';
+                    act = `<i data-lucide="${i}" class="${c} w-5 h-5 drop-shadow-lg"></i>`;
                 }
-
-                const opacity = t.status === 'pending' ? 'opacity-100' : 'opacity-60 grayscale hover:grayscale-0 transition-all duration-300';
-                const failBg = t.status === 'failed' ? 'bg-neonRed/5 border-neonRed/20' : '';
+                const op = t.status==='pending' ? 'opacity-100' : 'opacity-60 grayscale';
+                const fl = t.status==='failed' ? 'bg-neonRed/5 border-neonRed/20' : '';
 
                 return `
-                <div class="glass-panel p-4 rounded-xl flex items-center justify-between ${opacity} ${failBg} mb-3 group hover:border-white/20 transition-all">
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between ${op} ${fl} mb-3 group hover:border-white/20 transition-all">
                     <div class="flex-1 pr-3">
                         <div class="flex items-center gap-2 mb-1.5">
                             <span class="text-[8px] font-mono font-bold text-slate-300 bg-slate px-1.5 py-0.5 rounded border border-white/5">${slot.label}</span>
                             <span class="text-[8px] font-bold border px-1.5 py-0.5 rounded uppercase ${diff.color} ${diff.border} bg-white/5">${diff.label}</span>
                         </div>
-                        <p class="text-sm text-white font-medium leading-snug ${t.status === 'failed' ? 'line-through text-neonRed/70' : ''}">${t.text}</p>
+                        <p class="text-sm text-white font-medium leading-snug ${t.status==='failed'?'line-through text-neonRed/70':''}">${t.text}</p>
                     </div>
-                    <div>${action}</div>
+                    <div>${act}</div>
                 </div>`;
-            },
+            }
 
-            rankLegend() {
+            static rankLegend() {
                 return Config.TIERS.slice().reverse().map(t => `
                 <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
                     <div class="font-display w-8 text-center text-lg ${t.class}">${t.code}</div>
@@ -637,28 +350,32 @@
             }
         };
 
-        /**
-         * ---------------------------------------------------------------------
-         * MODULE 4: CONTROLLER (STATE & LOGIC)
-         * ---------------------------------------------------------------------
-         */
+        // CONTROLLER
         const Controller = {
-            // Application State
             state: {
                 view: 'home',
                 difficulty: 'easy',
-                histMonth: TimeService.getMonthKey(TimeService.getISO()), // YYYY-MM
-                histDate: null, // Selected date in history
-                tempTask: null // Holds task data during modal
+                histMonth: Utils.getISO().slice(0, 7),
+                histDate: null,
+                tempTask: null
             },
 
-            // Initialization
             init() {
-                // Initialize particle effect
-                this.initParticles();
-                this.render();
+                // Initialize Visuals
+                new VFXEngine();
                 
-                // Background Loop (Auto-Fail Check)
+                // Initialize Header
+                const monthDisplay = document.getElementById('header-month');
+                if (monthDisplay) monthDisplay.innerText = Utils.formatMonth(Utils.getMonthKey(Utils.getISO()));
+                
+                // Display Current Date in Header for confirmation
+                const statusDisplay = document.getElementById('header-status');
+                if (statusDisplay) statusDisplay.innerText = Utils.formatDate(Utils.getISO()).toUpperCase();
+
+                // Initialize Render
+                this.render();
+
+                // Start Auto-Fail Loop
                 setInterval(() => {
                     const tasks = Store.get('tasks');
                     if (Engine.checkAutoFail(tasks)) {
@@ -669,37 +386,13 @@
                 }, 15000);
             },
 
-            // --- NAVIGATION ---
-            navigate(viewId) {
-                this.state.view = viewId;
-                this.render();
-            },
-
-            setDifficulty(diffId) {
-                this.state.difficulty = diffId;
-                this.render(); // Re-render to update button UI
-            },
-
-            // --- HISTORY NAVIGATION ---
-            navMonth(offset) {
-                const [y, m] = this.state.histMonth.split('-');
-                const d = new Date(y, parseInt(m) - 1 + offset);
-                this.state.histMonth = TimeService.getMonthKey(TimeService.getISO(d));
-                this.state.histDate = null;
-                this.render();
-            },
-
-            setDate(dateISO) {
-                this.state.histDate = dateISO;
-                this.render();
-            },
-
-            // --- TASK MANAGEMENT ---
+            navigate(view) { this.state.view = view; this.render(); },
+            setDifficulty(d) { this.state.difficulty = d; this.render(); },
+            
             initTask() {
                 const input = document.getElementById('task-in');
                 const text = input.value.trim();
                 if (!text) { this.toast('Nama misi wajib diisi', 'error'); return; }
-                
                 this.state.tempTask = { text, difficulty: this.state.difficulty };
                 this.openModal();
                 input.value = '';
@@ -709,11 +402,11 @@
                 if (!this.state.tempTask) return;
                 const tasks = Store.get('tasks');
                 tasks.push({
-                    id: crypto.randomUUID(),
+                    id: Utils.generateId(),
                     text: this.state.tempTask.text,
                     difficulty: this.state.tempTask.difficulty,
                     timeSlot: slotId,
-                    date: TimeService.getTomorrow(),
+                    date: Utils.getTomorrow(),
                     status: 'pending',
                     createdAt: new Date().toISOString()
                 });
@@ -729,17 +422,14 @@
                 if (t) {
                     t.status = status;
                     Store.set('tasks', tasks);
-                    
                     if (status === 'completed') {
-                        // Check Rewards
                         const { mon } = Engine.calcPoints(tasks);
                         const rewards = Store.get('rewards');
                         rewards.forEach(r => {
                             if (r.status === 'active' && mon >= r.cost) {
                                 setTimeout(() => {
                                     if(confirm(`Hadiah "${r.name}" tercapai! Klaim?`)) {
-                                        r.status = 'redeemed';
-                                        r.redeemedDate = TimeService.getISO();
+                                        r.status = 'redeemed'; r.redeemedDate = Utils.getISO();
                                         Store.set('rewards', rewards);
                                         this.toast(`Hadiah "${r.name}" diklaim!`, 'success');
                                         this.render();
@@ -761,12 +451,11 @@
                 }
             },
 
-            // --- REFLECTION & REWARDS ---
             saveRef() {
                 const val = document.getElementById('ref-in').value.trim();
                 if(val) {
                     const refs = Store.get('reflections');
-                    const today = TimeService.getISO();
+                    const today = Utils.getISO();
                     const ex = refs.find(r => r.date === today);
                     if(ex) ex.text = val; else refs.push({ date: today, text: val });
                     Store.set('reflections', refs);
@@ -780,7 +469,7 @@
                 const c = parseInt(document.getElementById('rew-c').value);
                 if(n && c) {
                     const r = Store.get('rewards');
-                    r.push({id: crypto.randomUUID(), name: n, cost: c, status: 'active', redeemedDate: null});
+                    r.push({id:Utils.generateId(), name:n, cost:c, status:'active', redeemedDate:null});
                     Store.set('rewards', r);
                     this.toast('Target ditambahkan', 'success');
                     this.render();
@@ -795,34 +484,37 @@
                 }
             },
 
-            // --- UI HELPERS ---
+            navMonth(offset) {
+                const [y, m] = this.state.histMonth.split('-');
+                const d = new Date(y, parseInt(m)-1+offset);
+                this.state.histMonth = Utils.getISO(d).slice(0, 7);
+                this.state.histDate = null;
+                this.render();
+            },
+
+            setDate(d) { this.state.histDate = d; this.render(); },
+
+            // UI HELPERS
             toast(msg, type='info') {
-                const el = document.getElementById('toast-container');
+                const el = document.getElementById('toast-layer');
                 const div = document.createElement('div');
                 const cls = { success:'border-neonGreen text-neonGreen', error:'border-neonRed text-neonRed', info:'border-neonCyan text-neonCyan' };
                 const ico = { success:'check-circle', error:'alert-circle', info:'info' };
-                
                 div.className = `toast-msg border-l-4 ${cls[type]}`;
                 div.innerHTML = `<i data-lucide="${ico[type]}" class="w-5 h-5"></i><span class="text-xs font-bold text-white">${msg}</span>`;
-                
                 el.appendChild(div);
                 lucide.createIcons();
-                
-                // Animation logic
-                setTimeout(() => { 
-                    div.style.animation = 'toastOut 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards'; 
-                    setTimeout(() => div.remove(), 400); 
-                }, 3000);
+                setTimeout(() => { div.style.animation = 'toastExit 0.4s forwards'; setTimeout(()=>div.remove(), 400); }, 3000);
             },
 
             openModal() {
-                const m = document.getElementById('modal-container');
+                const m = document.getElementById('modal-layer');
                 m.innerHTML = `
-                <div class="bg-charcoal border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-2xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto view-transition relative">
+                <div class="bg-charcoal border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-2xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto animate-[float_0.3s_ease-out]">
                     <button onclick="App.controller.closeModal()" class="absolute top-6 right-6 text-slate-500 hover:text-white bg-slate-800/50 p-2 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
                     <div class="mb-6"><h3 class="text-xl font-bold text-white mb-1">Time Protocol</h3><p class="text-slate-400 text-xs font-mono">Pilih slot waktu:</p></div>
                     <div class="grid grid-cols-2 gap-2 h-64 overflow-y-auto custom-scroll pr-1">
-                        ${Config.TIME_SLOTS.map(s => `<button onclick="App.controller.confirmTask('${s.id}')" class="glass-panel p-3 rounded-xl hover:border-neonCyan hover:bg-slate-800 text-left group active:scale-95 transition-all"><span class="text-neonCyan font-mono font-bold text-sm block group-hover:text-white transition-colors">${s.label}</span><span class="text-slate-300 text-[10px] block opacity-70">${s.range}</span></button>`).join('')}
+                        ${Config.TIME_SLOTS.map(s => `<button onclick="App.controller.confirmTask('${s.id}')" class="glass-card p-3 rounded-xl hover:border-neonCyan hover:bg-slate-800 text-left group active:scale-95 transition-all"><span class="text-neonCyan font-mono font-bold text-sm block group-hover:text-white transition-colors">${s.label}</span><span class="text-slate-300 text-[10px] block opacity-70">${s.range}</span></button>`).join('')}
                     </div>
                 </div>`;
                 m.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
@@ -830,94 +522,39 @@
             },
 
             closeModal() {
-                const m = document.getElementById('modal-container');
+                const m = document.getElementById('modal-layer');
                 m.classList.add('opacity-0', 'invisible', 'pointer-events-none');
                 setTimeout(() => m.innerHTML='', 300);
             },
 
-            // --- PARTICLES FX ---
-            initParticles() {
-                const canvas = document.getElementById('particle-canvas');
-                const ctx = canvas.getContext('2d');
-                let width, height;
-                let particles = [];
-
-                const resize = () => {
-                    width = canvas.width = window.innerWidth;
-                    height = canvas.height = window.innerHeight;
-                };
-                window.addEventListener('resize', resize);
-                resize();
-
-                class Particle {
-                    constructor() {
-                        this.x = Math.random() * width;
-                        this.y = Math.random() * height;
-                        this.vx = (Math.random() - 0.5) * 0.5;
-                        this.vy = (Math.random() - 0.5) * 0.5;
-                        this.size = Math.random() * 2;
-                        this.alpha = Math.random() * 0.5;
-                    }
-                    update() {
-                        this.x += this.vx;
-                        this.y += this.vy;
-                        if(this.x < 0) this.x = width;
-                        if(this.x > width) this.x = 0;
-                        if(this.y < 0) this.y = height;
-                        if(this.y > height) this.y = 0;
-                    }
-                    draw() {
-                        ctx.fillStyle = `rgba(6, 182, 212, ${this.alpha})`;
-                        ctx.beginPath();
-                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                }
-
-                for(let i=0; i<30; i++) particles.push(new Particle());
-
-                const animate = () => {
-                    ctx.clearRect(0, 0, width, height);
-                    particles.forEach(p => { p.update(); p.draw(); });
-                    requestAnimationFrame(animate);
-                };
-                animate();
-            },
-
-            // --- MAIN RENDER ---
+            // RENDER ENGINE
             render() {
-                // Fetch Data
                 const tasks = Store.get('tasks');
                 const rewards = Store.get('rewards');
                 const reflections = Store.get('reflections');
-                
-                const today = TimeService.getISO();
-                const monthKey = TimeService.getMonthKey(today);
+                const today = Utils.getISO();
+                const monthKey = Utils.getISO().slice(0, 7);
 
                 // Update Header
                 const hMonth = document.getElementById('header-month');
-                if(hMonth) hMonth.innerText = TimeService.formatMonth(monthKey);
+                if(hMonth) hMonth.innerText = Utils.formatMonth(monthKey);
 
-                // Update Nav State
+                // Update Nav
                 const navInner = document.getElementById('nav-inner');
-                if(navInner) {
-                    const tabs = [{id:'home',l:'PETA',i:'map'},{id:'rank',l:'RANK',i:'swords'},{id:'rewards',l:'GIFT',i:'gift'},{id:'history',l:'LOGS',i:'history'}];
-                    navInner.innerHTML = tabs.map(t => {
-                        const act = this.state.view === t.id;
-                        return `<button onclick="App.controller.navigate('${t.id}')" class="nav-item ${act?'active':''} flex flex-col items-center gap-1.5 p-2 w-16 group"><i data-lucide="${t.i}" class="nav-icon w-5 h-5"></i><span class="text-[8px] font-bold tracking-widest group-hover:text-white">${t.l}</span><div class="nav-indicator"></div></button>`;
-                    }).join('');
-                }
+                const tabs = [{id:'home',l:'PETA',i:'map'},{id:'rank',l:'RANK',i:'swords'},{id:'rewards',l:'GIFT',i:'gift'},{id:'history',l:'LOGS',i:'history'}];
+                navInner.innerHTML = tabs.map(t => {
+                    const act = this.state.view === t.id;
+                    return `<button onclick="App.controller.navigate('${t.id}')" class="nav-item ${act?'active':''} flex flex-col items-center gap-1.5 p-2 w-16 group"><i data-lucide="${t.i}" class="nav-icon w-5 h-5"></i><span class="text-[8px] font-bold tracking-widest group-hover:text-white">${t.l}</span><div class="nav-indicator"></div></button>`;
+                }).join('');
 
-                // Route View
-                const viewport = document.getElementById('app-viewport');
-                if(!viewport) return;
-
+                const main = document.getElementById('app-viewport');
+                
                 if (this.state.view === 'home') {
                     const pts = Engine.calcPoints(tasks);
                     const rnk = Engine.calcRank(monthKey, tasks);
                     const ref = reflections.find(r => r.date === today);
                     const tToday = tasks.filter(t => t.date === today);
-                    const tTom = tasks.filter(t => t.date === TimeService.getTomorrow());
+                    const tTom = tasks.filter(t => t.date === Utils.getTomorrow());
 
                     const diffBtn = (d) => {
                         const act = this.state.difficulty === d;
@@ -925,79 +562,69 @@
                         return `<button onclick="App.controller.setDifficulty('${d}')" class="flex-1 py-2 rounded-lg text-[10px] font-bold border uppercase transition-all ${act ? `bg-white/10 text-white shadow-[0_0_10px_currentColor] ${c.border}` : 'border-slate-700 text-slate-500'}" style="${act?`color:${c.hex}`:''}">${c.label}</button>`;
                     };
 
-                    viewport.innerHTML = `
-                    <div class="space-y-8 pb-10 view-transition">
-                        <!-- Top Stats -->
-                        <div class="flex gap-4">${Components.rankCard('EXECUTION', rnk.exec, 'swords')}${Components.rankCard('CONSISTENCY', rnk.cons, 'zap')}</div>
+                    main.innerHTML = `
+                    <div class="space-y-8 pb-10 animate-[fadeIn_0.4s_ease-out]">
+                        <div class="flex gap-4">${ComponentFactory.rankCard('EXECUTION', rnk.exec, 'swords')}${ComponentFactory.rankCard('CONSISTENCY', rnk.cons, 'zap')}</div>
                         
-                        <!-- Points Banner -->
-                        <div class="glass-panel p-5 rounded-xl flex items-center justify-between relative overflow-hidden">
+                        <div class="glass-card p-5 rounded-xl flex items-center justify-between relative overflow-hidden">
                             <div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-neonCyan/10 to-transparent"></div>
                             <div class="relative z-10"><div class="text-[9px] text-neonCyan font-bold uppercase tracking-widest mb-1">Poin Hari Ini</div><div class="text-4xl font-mono font-bold text-white drop-shadow-md">${pts.cur} <span class="text-xs text-slate-500 font-sans font-normal">PTS</span></div></div>
                             <div class="relative z-10 w-12 h-12 rounded-full bg-slate border border-white/10 flex items-center justify-center"><i data-lucide="activity" class="text-neonCyan w-6 h-6"></i></div>
                         </div>
 
-                        <!-- Monthly Stats -->
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="glass-panel p-4 flex flex-col items-center border-l-2 border-slate-600"><span class="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Bulan Lalu</span><span class="text-xl font-mono font-bold text-slate-200">${pts.last}</span></div>
-                            <div class="glass-panel p-4 flex flex-col items-center border-l-2 border-neonCyan"><span class="text-[8px] text-neonCyan uppercase tracking-widest mb-1">Bulan Ini</span><span class="text-xl font-mono font-bold text-white">${pts.mon}</span></div>
+                            <div class="glass-card p-4 flex flex-col items-center border-l-2 border-slate-600"><span class="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Bulan Lalu</span><span class="text-xl font-mono font-bold text-slate-200">${pts.last}</span></div>
+                            <div class="glass-card p-4 flex flex-col items-center border-l-2 border-neonCyan"><span class="text-[8px] text-neonCyan uppercase tracking-widest mb-1">Bulan Ini</span><span class="text-xl font-mono font-bold text-white">${pts.mon}</span></div>
                         </div>
 
-                        <!-- Reflection -->
-                        ${ref ? `<div class="glass-panel p-5 rounded-xl border-l-4 border-l-neonPurple"><div class="flex items-center gap-2 mb-2 text-neonPurple"><i data-lucide="brain-circuit" class="w-4 h-4"></i><span class="text-[10px] font-bold uppercase tracking-widest">LOG REFLEKSI</span></div><p class="text-sm text-slate-200 italic">"${ref.text}"</p></div>` : 
+                        ${ref ? `<div class="glass-card p-5 rounded-xl border-l-4 border-l-neonPurple"><div class="flex items-center gap-2 mb-2 text-neonPurple"><i data-lucide="brain-circuit" class="w-4 h-4"></i><span class="text-[10px] font-bold uppercase tracking-widest">LOG REFLEKSI</span></div><p class="text-sm text-slate-200 italic">"${ref.text}"</p></div>` : 
                         `<div class="p-5 rounded-xl border border-dashed border-slate-700 bg-slate/20"><label class="block text-slate-400 text-[10px] font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><i data-lucide="edit-3" class="w-3 h-3"></i> Refleksi Wajib</label><div class="flex gap-2"><input id="ref-in" type="text" placeholder="Apa yang dipelajari?" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none"><button onclick="App.controller.saveRef()" class="bg-neonPurple text-white px-4 rounded-lg shadow-lg"><i data-lucide="save" class="w-4 h-4"></i></button></div></div>`}
 
-                        <!-- Today Tasks -->
                         <div>
                             <div class="flex justify-between mb-4 items-end border-b border-white/5 pb-2"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="crosshair" class="w-4 h-4 text-neonCyan"></i> MISI HARI INI</h2><span class="text-[9px] font-bold text-slate-500 bg-slate px-2 py-1 rounded border border-white/5">${tToday.length} TUGAS</span></div>
-                            <div class="space-y-0">${tToday.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">TIDAK ADA DATA</div>' : tToday.map(t => Components.taskItem(t, true)).join('')}</div>
+                            <div class="space-y-0">${tToday.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">TIDAK ADA DATA</div>' : tToday.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
                         </div>
 
-                        <!-- Divider -->
                         <div class="flex items-center justify-center opacity-20 py-2"><div class="h-px bg-white w-full"></div><div class="mx-4 text-[9px] font-mono text-white whitespace-nowrap">NEXT CYCLE</div><div class="h-px bg-white w-full"></div></div>
 
-                        <!-- Tomorrow Plan -->
                         <div>
                             <h2 class="text-sm font-bold text-white mb-4 flex items-center gap-2"><i data-lucide="sunrise" class="w-4 h-4 text-neonGold"></i> PERENCANAAN BESOK</h2>
-                            <div class="glass-panel p-5 rounded-xl space-y-4 mb-4">
+                            <div class="glass-card p-5 rounded-xl space-y-4 mb-4">
                                 <input id="task-in" type="text" placeholder="Input nama misi..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
                                 <div class="flex gap-2">${['easy','medium','hard'].map(diffBtn).join('')}</div>
-                                <button onclick="App.controller.promptTask()" class="w-full btn-action bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian font-bold py-3 rounded-lg text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.3)] flex justify-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Lanjut ke Waktu</button>
+                                <button onclick="App.controller.initTask()" class="w-full btn-action bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian font-bold py-3 rounded-lg text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.3)] flex justify-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Lanjut ke Waktu</button>
                             </div>
-                            <div class="space-y-0">${tTom.map(t => Components.taskItem(t, false)).join('')}</div>
+                            <div class="space-y-0">${tTom.map(t => ComponentFactory.taskItem(t, false)).join('')}</div>
                         </div>
                     </div>`;
                 } 
                 else if (this.state.view === 'rank') {
                     const rnk = Engine.calcRank(monthKey, tasks);
                     let hHtml = '';
-                    // History
                     for(let i=1; i<=3; i++) {
                         const d = new Date(); d.setMonth(d.getMonth()-i);
-                        const k = TimeService.getISO(d).slice(0,7);
+                        const k = Utils.getISO(d).slice(0,7);
                         const r = Engine.calcRank(k, tasks);
-                        hHtml += `<div class="glass-panel p-4 rounded-xl flex items-center justify-between mb-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24">${TimeService.formatMonth(k)}</span><div class="flex gap-4"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonCyan"></span><span class="font-display text-white ${r.exec.tier.class}">${r.exec.tier.code}</span></div><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonPurple"></span><span class="font-display text-white ${r.cons.tier.class}">${r.cons.tier.code}</span></div></div></div>`;
+                        hHtml += `<div class="glass-card p-4 rounded-xl flex items-center justify-between mb-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24">${Utils.formatMonth(k)}</span><div class="flex gap-4"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonCyan"></span><span class="font-display text-white ${r.exec.tier.class}">${r.exec.tier.code}</span></div><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonPurple"></span><span class="font-display text-white ${r.cons.tier.class}">${r.cons.tier.code}</span></div></div></div>`;
                     }
-
-                    viewport.innerHTML = `
-                    <div class="space-y-8 view-transition pt-4">
-                        <div class="text-center"><div class="inline-block px-6 py-2 rounded-full border border-neonCyan/30 bg-neonCyan/10 backdrop-blur-md mb-2"><h2 class="text-neonCyan font-black text-sm uppercase tracking-[0.2em] drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">${TimeService.formatMonth(monthKey)}</h2></div><p class="text-[10px] text-slate-500 uppercase tracking-widest">Laporan Kinerja Bulanan</p></div>
-                        <div class="flex flex-col gap-4">${Components.rankCard('EXECUTION RANK', rnk.exec, 'swords')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2 mb-2">SYARAT: SEMUA SELESAI (2x)</div>${Components.rankCard('CONSISTENCY RANK', rnk.cons, 'zap')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2">SYARAT: MINIMAL 1 SELESAI (2x)</div></div>
+                    main.innerHTML = `
+                    <div class="space-y-8 animate-[fadeIn_0.4s_ease-out] pt-4">
+                        <div class="text-center"><div class="inline-block px-6 py-2 rounded-full border border-neonCyan/30 bg-neonCyan/10 backdrop-blur-md mb-2"><h2 class="text-neonCyan font-black text-sm uppercase tracking-[0.2em] drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">${Utils.formatMonth(monthKey)}</h2></div><p class="text-[10px] text-slate-500 uppercase tracking-widest">Laporan Kinerja Bulanan</p></div>
+                        <div class="flex flex-col gap-4">${ComponentFactory.rankCard('EXECUTION RANK', rnk.exec, 'swords')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2 mb-2">SYARAT: SEMUA SELESAI (2x)</div>${ComponentFactory.rankCard('CONSISTENCY RANK', rnk.cons, 'zap')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2">SYARAT: MINIMAL 1 SELESAI (2x)</div></div>
                         <div class="pt-4 border-t border-white/5"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="archive" class="w-3 h-3"></i> Arsip Bulanan</h3>${hHtml}</div>
-                        <div class="pt-4 border-t border-white/5"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="list" class="w-3 h-3"></i> Codex Pangkat</h3><div class="bg-charcoal/50 p-2 rounded-xl border border-white/5 h-64 overflow-y-auto custom-scroll">${Components.rankLegend()}</div></div>
+                        <div class="pt-4 border-t border-white/5"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="list" class="w-3 h-3"></i> Codex Pangkat</h3><div class="bg-charcoal/50 p-2 rounded-xl border border-white/5 h-64 overflow-y-auto custom-scroll">${ComponentFactory.rankLegend()}</div></div>
                     </div>`;
                 }
                 else if (this.state.view === 'rewards') {
                     const { mon } = Engine.calcPoints(tasks);
                     const active = rewards.filter(r => r.status === 'active');
                     const redeemed = rewards.filter(r => r.status === 'redeemed').sort((a,b)=>new Date(b.redeemedDate)-new Date(a.redeemedDate));
-                    
-                    viewport.innerHTML = `
-                    <div class="space-y-6 view-transition pt-4">
-                        <div class="glass-panel p-8 rounded-2xl text-center relative overflow-hidden"><div class="absolute inset-0 bg-gradient-to-br from-neonCyan/10 to-transparent"></div><p class="text-neonCyan mb-2 text-[10px] uppercase tracking-[0.3em] font-bold relative z-10">SALDO POIN</p><p class="text-6xl font-black text-white drop-shadow-[0_0_20px_rgba(6,182,212,0.5)] font-mono relative z-10">${TimeService.formatCurrency(mon)}</p></div>
-                        <div class="space-y-2"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonCyan">Target Baru</h3><div class="glass-panel p-4 rounded-xl space-y-3"><input id="rew-n" type="text" placeholder="Nama hadiah..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><div class="flex gap-2"><input id="rew-c" type="number" placeholder="Harga" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><button onclick="App.controller.addReward()" class="bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian px-5 rounded-lg font-bold transition-all shadow-lg"><i data-lucide="plus" class="w-5 h-5"></i></button></div></div></div>
-                        <div class="space-y-3"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonPurple">Wishlist</h3>${active.length===0?'<div class="text-center py-8 text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">KOSONG</div>':active.map(r=>{const p=Math.min((mon/r.cost)*100,100); const col=mon>=r.cost?'bg-neonGreen':'bg-gradient-to-r from-neonCyan to-neonPurple'; return `<div class="glass-panel p-4 rounded-xl relative overflow-hidden group"><div class="absolute bottom-0 left-0 h-1 ${col} transition-all duration-1000 shadow-[0_0_10px_currentColor]" style="width:${p}%"></div><div class="flex justify-between items-center relative z-10"><div><p class="text-white text-sm font-bold group-hover:text-neonCyan transition-colors">${r.name}</p><p class="text-[10px] text-slate-400 mt-1 font-mono tracking-wide">${TimeService.formatCurrency(mon)} / <span class="text-white">${TimeService.formatCurrency(r.cost)}</span></p></div><button onclick="App.controller.delReward('${r.id}')" class="text-slate-600 hover:text-neonRed transition-colors p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`}).join('')}</div>
-                        <div class="pt-4 border-t border-white/5 space-y-3"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2 border-l-2 border-slate-600">Riwayat Klaim</h3>${redeemed.length===0?'<div class="text-center py-4 text-xs text-slate-700">Belum ada.</div>':redeemed.map(r=>`<div class="glass-panel p-3 rounded-lg flex items-center justify-between opacity-70"><div><p class="text-white text-xs font-bold">${r.name}</p><p class="text-[9px] text-slate-500">${TimeService.formatDate(r.redeemedDate)}</p></div><div class="text-neonGreen text-[10px] font-mono flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> TUKAR</div></div>`).join('')}</div>
+                    main.innerHTML = `
+                    <div class="space-y-6 animate-[fadeIn_0.4s_ease-out] pt-4">
+                        <div class="glass-card p-8 rounded-2xl text-center relative overflow-hidden"><div class="absolute inset-0 bg-gradient-to-br from-neonCyan/10 to-transparent"></div><p class="text-neonCyan mb-2 text-[10px] uppercase tracking-[0.3em] font-bold relative z-10">SALDO POIN</p><p class="text-6xl font-black text-white drop-shadow-[0_0_20px_rgba(6,182,212,0.5)] font-mono relative z-10">${Utils.formatCurrency(mon)}</p></div>
+                        <div class="space-y-2"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonCyan">Target Baru</h3><div class="glass-card p-4 rounded-xl space-y-3"><input id="rew-n" type="text" placeholder="Nama hadiah..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><div class="flex gap-2"><input id="rew-c" type="number" placeholder="Harga" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><button onclick="App.controller.addReward()" class="bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian px-5 rounded-lg font-bold transition-all shadow-lg"><i data-lucide="plus" class="w-5 h-5"></i></button></div></div></div>
+                        <div class="space-y-3"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonPurple">Wishlist</h3>${active.length===0?'<div class="text-center py-8 text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">KOSONG</div>':active.map(r=>{const p=Math.min((mon/r.cost)*100,100); const col=mon>=r.cost?'bg-neonGreen':'bg-gradient-to-r from-neonCyan to-neonPurple'; return `<div class="glass-card p-4 rounded-xl relative overflow-hidden group"><div class="absolute bottom-0 left-0 h-1 ${col} transition-all duration-1000 shadow-[0_0_10px_currentColor]" style="width:${p}%"></div><div class="flex justify-between items-center relative z-10"><div><p class="text-white text-sm font-bold group-hover:text-neonCyan transition-colors">${r.name}</p><p class="text-[10px] text-slate-400 mt-1 font-mono tracking-wide">${Utils.formatCurrency(mon)} / <span class="text-white">${Utils.formatCurrency(r.cost)}</span></p></div><button onclick="App.controller.delReward('${r.id}')" class="text-slate-600 hover:text-neonRed transition-colors p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`}).join('')}</div>
+                        <div class="pt-4 border-t border-white/5 space-y-3"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2 border-l-2 border-slate-600">Riwayat Klaim</h3>${redeemed.length===0?'<div class="text-center py-4 text-xs text-slate-700">Belum ada.</div>':redeemed.map(r=>`<div class="glass-card p-3 rounded-lg flex items-center justify-between opacity-70"><div><p class="text-white text-xs font-bold">${r.name}</p><p class="text-[9px] text-slate-500">${Utils.formatDate(r.redeemedDate)}</p></div><div class="text-neonGreen text-[10px] font-mono flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> TUKAR</div></div>`).join('')}</div>
                     </div>`;
                 }
                 else if (this.state.view === 'history') {
@@ -1023,16 +650,16 @@
                         grid+=`<button onclick="App.controller.setDate('${d}')" class="cal-cell ${sd===d?'active':''} aspect-square rounded-lg flex items-center justify-center text-xs border ${br} ${bg} transition-all hover:scale-105 active:scale-95">${new Date(d).getDate()}</button>`;
                     });
 
-                    viewport.innerHTML = `
-                    <div class="h-full flex flex-col pt-2 view-transition">
-                        <div class="flex items-center justify-between glass-panel p-2 rounded-xl mb-4"><button onclick="App.controller.navMonth(-1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-left" class="w-5 h-5"></i></button><span class="text-white font-black text-sm tracking-[0.2em]">${TimeService.formatMonth(this.state.histMonth)}</span><button onclick="App.controller.navMonth(1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-right" class="w-5 h-5"></i></button></div>
+                    main.innerHTML = `
+                    <div class="h-full flex flex-col pt-2 animate-[fadeIn_0.4s_ease-out]">
+                        <div class="flex items-center justify-between glass-card p-2 rounded-xl mb-4"><button onclick="App.controller.navMonth(-1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-left" class="w-5 h-5"></i></button><span class="text-white font-black text-sm tracking-[0.2em]">${Utils.formatMonth(this.state.histMonth)}</span><button onclick="App.controller.navMonth(1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-right" class="w-5 h-5"></i></button></div>
                         <div class="grid grid-cols-7 gap-1 text-center mb-2">${['SEN','SEL','RAB','KAM','JUM','SAB','MIN'].map(d=>`<div class="text-[8px] font-bold text-slate-500 tracking-wider">${d}</div>`).join('')}</div>
                         <div class="grid grid-cols-7 gap-1.5 mb-6">${grid}</div>
                         <div class="flex-1 space-y-4 overflow-y-auto hide-scroll pb-20 relative border-t border-white/5 pt-4">
                             ${!sd ? `<div class="text-center text-slate-600 text-xs font-mono pt-10 flex flex-col items-center gap-2"><i data-lucide="calendar-search" class="w-8 h-8 opacity-50"></i>PILIH TANGGAL</div>` : 
-                            `<div class="flex justify-between items-center mb-2"><h3 class="text-neonCyan font-bold text-lg">${TimeService.formatDate(sd)}</h3><span class="text-[10px] bg-slate px-2 py-1 rounded text-slate-400 font-mono border border-slate-700">LOG</span></div>
-                            <div class="glass-panel p-4 rounded-xl mb-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-3 opacity-10"><i data-lucide="brain-circuit" class="w-12 h-12 text-white"></i></div><div class="text-[9px] text-neonPurple font-bold uppercase mb-2 tracking-wider">Refleksi</div><p class="text-slate-300 text-sm italic relative z-10">"${sRef ? sRef.text : 'Tidak ada catatan.'}"</p></div>
-                            <div class="space-y-0">${sTasks.length === 0 ? '<p class="text-center text-xs text-slate-600 py-8">Tidak ada misi.</p>' : sTasks.map(t => Components.taskItem(t, false)).join('')}</div>`}
+                            `<div class="flex justify-between items-center mb-2"><h3 class="text-neonCyan font-bold text-lg">${Utils.formatDate(sd)}</h3><span class="text-[10px] bg-slate px-2 py-1 rounded text-slate-400 font-mono border border-slate-700">LOG</span></div>
+                            <div class="glass-card p-4 rounded-xl mb-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-3 opacity-10"><i data-lucide="brain-circuit" class="w-12 h-12 text-white"></i></div><div class="text-[9px] text-neonPurple font-bold uppercase mb-2 tracking-wider">Refleksi</div><p class="text-slate-300 text-sm italic relative z-10">"${sRef ? sRef.text : 'Tidak ada catatan.'}"</p></div>
+                            <div class="space-y-0">${sTasks.length === 0 ? '<p class="text-center text-xs text-slate-600 py-8">Tidak ada misi.</p>' : sTasks.map(t => ComponentFactory.taskItem(t, false)).join('')}</div>`}
                         </div>
                     </div>`;
                 }
@@ -1041,18 +668,58 @@
             }
         };
 
-        /**
-         * ---------------------------------------------------------------------
-         * INITIALIZATION
-         * ---------------------------------------------------------------------
-         */
-        // Create global App instance
+        // --- 5. INITIALIZATION ---
+        // VISUAL EFFECTS ENGINE
+        class VFXEngine {
+            constructor() {
+                this.canvas = document.getElementById('particle-canvas');
+                if(!this.canvas) return;
+                this.ctx = this.canvas.getContext('2d');
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.particles = [];
+                this.init();
+            }
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                for(let i=0; i<40; i++) this.particles.push(this.createParticle());
+                this.animate();
+            }
+            resize() {
+                this.width = this.canvas.width = window.innerWidth;
+                this.height = this.canvas.height = window.innerHeight;
+            }
+            createParticle() {
+                return {
+                    x: Math.random() * this.width,
+                    y: Math.random() * this.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 2,
+                    alpha: Math.random() * 0.5
+                };
+            }
+            animate() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if(p.x < 0) p.x = this.width;
+                    if(p.x > this.width) p.x = 0;
+                    if(p.y < 0) p.y = this.height;
+                    if(p.y > this.height) p.y = 0;
+                    this.ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
         const App = { controller: Controller };
-        
-        // Start
-        window.addEventListener('DOMContentLoaded', () => {
-            App.controller.init();
-        });
+        window.addEventListener('DOMContentLoaded', () => App.controller.init());
 
     </script>
 </body>
