@@ -7,14 +7,19 @@
     <meta name="description" content="Wake Map - Titanium Execution Protocol">
     <title>Wake Map - Titanium Edition</title>
     
-
+    <!-- 
+        EXTERNAL DEPENDENCIES 
+        Using minimal external deps to keep the core pure.
+    -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- TYPOGRAPHY -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Audiowide&display=swap" rel="stylesheet">
     
+    <!-- TAILWIND CONFIGURATION -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -71,7 +76,14 @@
         }
     </script>
 
+    <!-- 
+        ========================================================================
+        VISUAL ENGINEERING (CSS)
+        Extensive styling for premium feel and specific rank identities.
+        ========================================================================
+    -->
     <style>
+        /* --- RESET & VARS --- */
         :root {
             --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
             --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
@@ -89,12 +101,14 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        /* --- UTILITIES --- */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
         .backdrop-blur-xl { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
         .text-glow { text-shadow: 0 0 10px currentColor; }
         
+        /* --- BACKGROUND FX --- */
         .ambient-layer {
             position: fixed; inset: 0; pointer-events: none; z-index: 0;
             background: 
@@ -107,6 +121,7 @@
             pointer-events: none; z-index: 1; opacity: 0.4;
         }
 
+        /* --- GLASS COMPONENTS --- */
         .glass-panel {
             background: rgba(15, 23, 42, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -129,54 +144,68 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
         }
 
+        /* --- RANK VISUAL SYSTEM (15 TIERS - UPDATED) --- */
         .rank-display { font-family: 'Audiowide', cursive; letter-spacing: 0.05em; }
 
+        /* 1. F — Failing (Abu-abu gelap matte) */
         .tier-f { 
             color: #4B5563; 
             filter: grayscale(100%);
             text-shadow: none;
         }
         
+        /* 2. E — Elementary (Abu-abu muda matte) */
         .tier-e {
             color: #6B7280;
             filter: none;
             text-shadow: none;
         }
         
+        /* 3. D — Developing (Cokelat kusam matte) */
         .tier-d {
             color: #7C5C3B;
             text-shadow: none;
         }
         
+        /* 4. C — Capable (Hijau zaitun matte -> soft highlight) */
         .tier-c {
             color: #4B7F52;
             text-shadow: 0 1px 2px rgba(75, 127, 82, 0.3);
         }
         
+        /* 5. B — Balanced (Biru pudar soft glow) */
         .tier-b {
             color: #3B82F6;
             text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
         }
         
+        /* 6. A — Advanced (Biru terang soft glow konsisten) */
         .tier-a {
             color: #2563EB;
             text-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
         }
-        
+
+        /* 7. S — Superior (Ungu elegan glow halus) */
         .tier-s {
             color: #7C3AED;
             text-shadow: 0 0 15px rgba(124, 58, 237, 0.6);
         }
+
+        /* 8. SS — Supremely Skilled (Ungu -> magenta glow lembut + depth) */
         .tier-ss {
             background: linear-gradient(to bottom, #9333EA, #D946EF);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.6));
         }
+
+        /* 9. EX — Exceptional (Emas muda metallic sheen ringan) */
         .tier-ex {
             background: linear-gradient(135deg, #FEF08A 20%, #FACC15 50%, #A16207 80%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 1px 2px rgba(234, 179, 8, 0.5));
         }
+
+        /* 10. MR — Master Rank (Emas tua metallic + shimmer pelan) */
         .tier-mr {
             background: linear-gradient(45deg, #CA8A04 0%, #FDE047 50%, #CA8A04 100%);
             background-size: 200% auto;
@@ -184,16 +213,22 @@
             animation: shimmer 4s linear infinite;
             filter: drop-shadow(0 0 5px rgba(202, 138, 4, 0.6));
         }
+
+        /* 11. UR — Ultra Rare (Cyan kristal glow terang + shimmer) */
         .tier-ur {
             color: #22D3EE;
             text-shadow: 0 0 5px #fff, 0 0 15px #22D3EE, 0 0 25px #0891B2;
             animation: glow-pulse 3s infinite;
         }
+
+        /* 12. EXR — Extreme Rank (Merah ruby radiant glow terkontrol) */
         .tier-exr {
             color: #DC2626;
             text-shadow: 0 0 10px #EF4444, 0 0 20px #7F1D1D;
             filter: contrast(1.2);
         }
+
+        /* 13. HS — High Spec (Merah -> emas animated gradient glow pelan) */
         .tier-hs {
             background: linear-gradient(to right, #B91C1C, #F59E0B, #B91C1C);
             background-size: 200% auto;
@@ -201,10 +236,14 @@
             animation: shimmer 6s linear infinite;
             filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
         }
+
+        /* 14. PS — Peak State (Putih mutiara halo glow + shine) */
         .tier-ps {
             color: #F9FAFB;
             text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.4);
         }
+
+        /* 15. MAX — Maximum (Emas putih radiant glow + subtle particle) */
         .tier-max {
             background: linear-gradient(to bottom, #FFFFFF 30%, #FDE68A 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -221,6 +260,7 @@
             to { filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.8)); }
         }
 
+        /* --- NAVIGATION DOCK --- */
         .nav-dock {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(20px);
@@ -597,6 +637,11 @@
             }
         };
 
+        /**
+         * ---------------------------------------------------------------------
+         * MODULE 4: CONTROLLER (STATE & LOGIC)
+         * ---------------------------------------------------------------------
+         */
         const Controller = {
             // Application State
             state: {
@@ -609,6 +654,7 @@
 
             // Initialization
             init() {
+                // Initialize particle effect
                 this.initParticles();
                 this.render();
                 
@@ -623,6 +669,7 @@
                 }, 15000);
             },
 
+            // --- NAVIGATION ---
             navigate(viewId) {
                 this.state.view = viewId;
                 this.render();
@@ -632,6 +679,8 @@
                 this.state.difficulty = diffId;
                 this.render(); // Re-render to update button UI
             },
+
+            // --- HISTORY NAVIGATION ---
             navMonth(offset) {
                 const [y, m] = this.state.histMonth.split('-');
                 const d = new Date(y, parseInt(m) - 1 + offset);
@@ -682,6 +731,7 @@
                     Store.set('tasks', tasks);
                     
                     if (status === 'completed') {
+                        // Check Rewards
                         const { mon } = Engine.calcPoints(tasks);
                         const rewards = Store.get('rewards');
                         rewards.forEach(r => {
@@ -710,6 +760,8 @@
                     this.render();
                 }
             },
+
+            // --- REFLECTION & REWARDS ---
             saveRef() {
                 const val = document.getElementById('ref-in').value.trim();
                 if(val) {
@@ -743,6 +795,7 @@
                 }
             },
 
+            // --- UI HELPERS ---
             toast(msg, type='info') {
                 const el = document.getElementById('toast-container');
                 const div = document.createElement('div');
@@ -988,8 +1041,15 @@
             }
         };
 
+        /**
+         * ---------------------------------------------------------------------
+         * INITIALIZATION
+         * ---------------------------------------------------------------------
+         */
+        // Create global App instance
         const App = { controller: Controller };
         
+        // Start
         window.addEventListener('DOMContentLoaded', () => {
             App.controller.init();
         });
