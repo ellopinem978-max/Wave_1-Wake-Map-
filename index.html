@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#020617">
-    <title>Wake Map - Final Architect</title>
+    <meta name="description" content="Wake Map - The Ultimate Execution Protocol">
+    <title>Wake Map - Ultimate Architect</title>
     
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Audiowide&display=swap" rel="stylesheet">
     
     <!-- Tailwind Configuration -->
@@ -37,7 +40,7 @@
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
-                        'pulse-glow': 'pulseGlow 3s infinite alternate',
+                        'pulse-slow': 'pulseGlow 3s infinite alternate',
                         'shimmer': 'shimmer 2.5s linear infinite',
                     },
                     keyframes: {
@@ -59,39 +62,48 @@
         }
     </script>
 
-    <!-- CORE STYLESHEET -->
+    <!-- CORE STYLESHEET (High-Performance CSS) -->
     <style>
         :root { --ease-expo: cubic-bezier(0.19, 1, 0.22, 1); }
         body { background-color: #020617; color: #e2e8f0; overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; }
+        
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Components */
-        .glass-card { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); transition: all 0.3s var(--ease-expo); }
+
+        /* Glassmorphism System */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s var(--ease-expo);
+        }
         .glass-card:active { transform: scale(0.98); background: rgba(15, 23, 42, 0.85); }
+
+        /* Button Interactions */
         .btn-action { position: relative; overflow: hidden; transition: all 0.3s var(--ease-expo); }
+        .btn-action::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-action:hover::after { left: 100%; }
         .btn-action:active { transform: scale(0.96); }
 
-        /* Ranks */
-        .rank-iron { color: #64748b; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
-        .rank-bronze { color: #b45309; filter: drop-shadow(0 0 5px rgba(180,83,9,0.3)); }
-        .rank-silver { color: #cbd5e1; text-shadow: 0 0 8px rgba(203,213,225,0.4); }
-        .rank-gold { color: #facc15; text-shadow: 0 0 12px rgba(250,204,21,0.5); }
-        .rank-platinum { background: linear-gradient(135deg, #e0f2fe, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 8px rgba(14,165,233,0.5)); }
-        .rank-diamond { background: linear-gradient(135deg, #c4b5fd, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(139,92,246,0.6)); }
-        .rank-max { color: #fff; text-shadow: 0 0 10px #fff, 0 0 20px #22d3ee; animation: pulseGlow 2s infinite alternate; }
-
-        /* Nav */
-        .nav-item { transition: all 0.3s var(--ease-expo); color: #64748b; }
-        .nav-item.active { color: #06b6d4; transform: translateY(-4px); }
-        .nav-indicator { width: 4px; height: 4px; background: #06b6d4; border-radius: 50%; position: absolute; bottom: -8px; transform: scale(0); transition: 0.3s; }
-        .nav-item.active .nav-indicator { transform: scale(1); }
-
-        /* Tier Styles */
-        .tier-f { color: #4B5563; filter: grayscale(1); } .tier-e { color: #6B7280; filter: none; }
-        .tier-d { color: #7C5C3B; } .tier-c { color: #4B7F52; text-shadow: 0 1px 2px rgba(75,127,82,0.3); }
-        .tier-b { color: #3B82F6; text-shadow: 0 0 8px rgba(59,130,246,0.4); } .tier-a { color: #2563EB; text-shadow: 0 0 12px rgba(37,99,235,0.6); }
-        .tier-s { color: #7C3AED; text-shadow: 0 0 15px rgba(124,58,237,0.6); } .tier-ss { background: linear-gradient(to bottom, #9333EA, #D946EF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 8px rgba(147,51,234,0.6)); }
+        /* TIER VISUAL SYSTEM (Strict Implementation) */
+        .tier-f { color: #4B5563; filter: grayscale(1); }
+        .tier-e { color: #6B7280; filter: none; }
+        .tier-d { color: #7C5C3B; }
+        .tier-c { color: #4B7F52; text-shadow: 0 1px 2px rgba(75,127,82,0.3); }
+        .tier-b { color: #3B82F6; text-shadow: 0 0 8px rgba(59,130,246,0.4); }
+        .tier-a { color: #2563EB; text-shadow: 0 0 12px rgba(37,99,235,0.6); }
+        .tier-s { color: #7C3AED; text-shadow: 0 0 15px rgba(124,58,237,0.6); }
+        .tier-ss { background: linear-gradient(to bottom, #9333EA, #D946EF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 8px rgba(147,51,234,0.6)); }
         .tier-ex { background: linear-gradient(135deg, #FEF08A 20%, #FACC15 50%, #A16207 80%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 1px 2px rgba(234,179,8,0.5)); }
         .tier-mr { background: linear-gradient(45deg, #CA8A04 0%, #FDE047 50%, #CA8A04 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 4s linear infinite; filter: drop-shadow(0 0 5px rgba(202,138,4,0.6)); }
         .tier-ur { color: #22D3EE; text-shadow: 0 0 5px #fff, 0 0 15px #22D3EE, 0 0 25px #0891B2; animation: glow-pulse 3s infinite; }
@@ -99,44 +111,63 @@
         .tier-hs { background: linear-gradient(to right, #B91C1C, #F59E0B, #B91C1C); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 6s linear infinite; filter: drop-shadow(0 0 8px rgba(245,158,11,0.4)); }
         .tier-ps { color: #F9FAFB; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.4); }
         .tier-max { background: linear-gradient(to bottom, #FFFFFF 30%, #FDE68A 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px #FDE68A, 0 0 40px #F59E0B; position: relative; animation: float 4s ease-in-out infinite; }
+
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes glow-pulse { 0%, 100% { text-shadow: 0 0 5px currentColor; } 50% { text-shadow: 0 0 20px currentColor, 0 0 10px #fff; } }
 
-        /* Toast */
+        /* Navigation Dock */
+        .nav-dock {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+        }
+        .nav-item { position: relative; color: #64748b; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .nav-item.active { color: #06b6d4; transform: translateY(-4px); }
+        .nav-item.active .nav-icon { filter: drop-shadow(0 4px 8px rgba(6,182,212,0.4)); stroke-width: 2.5px; }
+        .nav-indicator { width: 4px; height: 4px; background: #06b6d4; border-radius: 50%; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%) scale(0); transition: transform 0.3s; box-shadow: 0 0 8px #06b6d4; }
+        .nav-item.active .nav-indicator { transform: translateX(-50%) scale(1); }
+
+        /* Toast & Overlays */
         #toast-layer { position: fixed; top: 20px; left: 0; right: 0; pointer-events: none; z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .toast-msg { background: rgba(15,23,42,0.95); backdrop-filter: blur(8px); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(-20px); opacity: 0; animation: toastEnter 0.4s forwards; }
         @keyframes toastEnter { to { transform: translateY(0); opacity: 1; } }
         @keyframes toastExit { to { transform: translateY(-20px); opacity: 0; } }
 
-        /* Calendar */
+        /* Calendar Grid */
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid transparent; transition: all 0.2s; position: relative; }
-        .cal-cell.active { background: rgba(6,182,212,0.2); border-color: #06b6d4; color: #fff; }
+        .cal-cell.active { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.5); color: #fff; }
+        .cal-cell:hover { background: rgba(255,255,255,0.05); }
 
-        /* Particle */
+        /* Particle Canvas */
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.3; }
         .ambient-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(139,92,246,0.05) 0%, transparent 50%); }
     </style>
 </head>
 <body class="font-sans text-sm antialiased text-textMain">
 
+    <!-- APP SHELL -->
     <div id="app-root" class="relative w-full max-w-md mx-auto h-screen flex flex-col bg-obsidian shadow-2xl border-x border-white/5 overflow-hidden">
+        
+        <!-- Background Systems -->
         <canvas id="particle-canvas"></canvas>
         <div class="ambient-layer"></div>
 
+        <!-- 1. HEADER -->
         <header id="app-header" class="flex-none pt-10 pb-4 px-6 z-20 border-b border-white/5 bg-gradient-to-b from-obsidian via-obsidian/95 to-transparent backdrop-blur-sm">
              <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2 font-display">
                         <span class="text-neonCyan drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">WAKE</span>MAP
                     </h1>
-                    <div class="flex items-center gap-2 mt-1">
+                    <!-- UPDATED: CLICK TO REFRESH -->
+                    <div onclick="window.location.reload()" class="flex items-center gap-2 mt-1 cursor-pointer group select-none">
                         <span class="relative flex h-2 w-2">
                           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neonGreen opacity-75"></span>
                           <span class="relative inline-flex rounded-full h-2 w-2 bg-neonGreen"></span>
                         </span>
-                        <!-- Menampilkan Tanggal WIB untuk konfirmasi user -->
-                        <p id="header-status" class="text-neonCyan/70 text-[10px] font-mono tracking-[0.2em] uppercase">SYSTEM ONLINE</p>
+                        <p id="header-status" class="text-neonCyan/70 text-[10px] font-mono tracking-[0.2em] group-hover:text-neonCyan group-active:text-white transition-colors">TAP TO RELOAD</p>
                     </div>
                 </div>
                 <div class="glass-card px-4 py-2 rounded-lg group hover:border-neonCyan/30 transition-colors cursor-default">
@@ -145,40 +176,75 @@
             </div>
         </header>
 
-        <main id="app-viewport" class="flex-1 overflow-y-auto px-5 py-6 hide-scroll relative z-10 space-y-8 scroll-smooth">
+        <!-- 2. MAIN VIEWPORT (Added overscroll-y-contain for bounce effect) -->
+        <main id="app-viewport" class="flex-1 overflow-y-auto overscroll-y-contain px-5 py-6 hide-scroll relative z-10 space-y-8 scroll-smooth">
+            <!-- Injected by Router -->
         </main>
 
+        <!-- 3. NAVIGATION -->
         <nav id="app-nav" class="flex-none h-24 px-6 pb-6 pt-2 z-30 bg-gradient-to-t from-obsidian via-obsidian/95 to-transparent pointer-events-none">
             <div id="nav-inner" class="glass-card w-full h-full rounded-2xl flex items-center justify-around px-2 shadow-2xl backdrop-blur-xl pointer-events-auto">
+                <!-- Injected by NavComponent -->
             </div>
         </nav>
 
+        <!-- 4. OVERLAYS -->
         <div id="toast-layer"></div>
         <div id="modal-layer" class="fixed inset-0 z-50 pointer-events-none flex items-end sm:items-center justify-center transition-all duration-300 opacity-0 invisible backdrop-blur-sm bg-black/60"></div>
+
     </div>
 
+    <!-- 
+        ========================================================================
+        JAVASCRIPT ARCHITECTURE
+        ========================================================================
+    -->
     <script>
+        /**
+         * MODULE 1: CONFIGURATION & CONSTANTS
+         */
         const Config = {
-            PREFIX: 'wakemap_final_',
+            APP_NAME: 'Wake Map',
+            VERSION: '5.2.0-UX',
+            STORAGE_PREFIX: 'wakemap_arch_',
+            
+            // Time Protocol (Added 'start' for clearer logic)
             TIME_SLOTS: [
-                { id: 'halt', label: 'HALT', range: '00-02', end: 2 }, { id: 'void', label: 'VOID', range: '02-04', end: 4 },
-                { id: 'boot', label: 'BOOT', range: '04-06', end: 6 }, { id: 'prim', label: 'PRIM', range: '06-08', end: 8 },
-                { id: 'core', label: 'CORE', range: '08-10', end: 10 }, { id: 'flow', label: 'FLOW', range: '10-12', end: 12 },
-                { id: 'idle', label: 'IDLE', range: '12-14', end: 14 }, { id: 'sync', label: 'SYNC', range: '14-16', end: 16 },
-                { id: 'exec', label: 'EXEC', range: '16-18', end: 18 }, { id: 'wind', label: 'WIND', range: '18-20', end: 20 },
-                { id: 'rest', label: 'REST', range: '20-22', end: 22 }, { id: 'fade', label: 'FADE', range: '22-24', end: 24 },
-                { id: 'all',  label: 'ALL',  range: '00-24', end: 24 }
+                { id: 'halt', label: 'HALT', range: '00:00 - 02:00', start: 0, end: 2, desc: 'Deep Rest & Recovery' },
+                { id: 'void', label: 'VOID', range: '02:00 - 04:00', start: 2, end: 4, desc: 'Subconscious Processing' },
+                { id: 'boot', label: 'BOOT', range: '04:00 - 06:00', start: 4, end: 6, desc: 'System Initialization' },
+                { id: 'prim', label: 'PRIM', range: '06:00 - 08:00', start: 6, end: 8, desc: 'Prime Mental State' },
+                { id: 'core', label: 'CORE', range: '08:00 - 10:00', start: 8, end: 10, desc: 'Deep Focus Work' },
+                { id: 'flow', label: 'FLOW', range: '10:00 - 12:00', start: 10, end: 12, desc: 'High Performance Flow' },
+                { id: 'idle', label: 'IDLE', range: '12:00 - 14:00', start: 12, end: 14, desc: 'System Recharge' },
+                { id: 'sync', label: 'SYNC', range: '14:00 - 16:00', start: 14, end: 16, desc: 'Strategic Alignment' },
+                { id: 'exec', label: 'EXEC', range: '16:00 - 18:00', start: 16, end: 18, desc: 'Tactical Execution' },
+                { id: 'wind', label: 'WIND', range: '18:00 - 20:00', start: 18, end: 20, desc: 'Evening Decompression' },
+                { id: 'rest', label: 'REST', range: '20:00 - 22:00', start: 20, end: 22, desc: 'Recovery Mode' },
+                { id: 'fade', label: 'FADE', range: '22:00 - 24:00', start: 22, end: 24, desc: 'System Shutdown' },
+                { id: 'all',  label: 'ALL',  range: '00:00 - 24:00', start: 0, end: 24, desc: 'Full Day Cycle' }
             ],
+
+            // Rank Definitions
             TIERS: [
-                { id:0, code:'F', name:'Failing', class:'tier-f', barColor:'#4B5563' }, { id:1, code:'E', name:'Elementary', class:'tier-e', barColor:'#6B7280' },
-                { id:2, code:'D', name:'Developing', class:'tier-d', barColor:'#7C5C3B' }, { id:3, code:'C', name:'Capable', class:'tier-c', barColor:'#4B7F52' },
-                { id:4, code:'B', name:'Balanced', class:'tier-b', barColor:'#3B82F6' }, { id:5, code:'A', name:'Advanced', class:'tier-a', barColor:'#2563EB' },
-                { id:6, code:'S', name:'Superior', class:'tier-s', barColor:'#7C3AED' }, { id:7, code:'SS', name:'Supremely Skilled', class:'tier-ss', barColor:'#9333EA' },
-                { id:8, code:'EX', name:'Exceptional', class:'tier-ex', barColor:'#FACC15' }, { id:9, code:'MR', name:'Master Rank', class:'tier-mr', barColor:'#EAB308' },
-                { id:10, code:'UR', name:'Ultra Rare', class:'tier-ur', barColor:'#22D3EE' }, { id:11, code:'EXR', name:'Extreme Rank', class:'tier-exr', barColor:'#DC2626' },
-                { id:12, code:'HS', name:'High Spec', class:'tier-hs', barColor:'#F59E0B' }, { id:13, code:'PS', name:'Peak State', class:'tier-ps', barColor:'#F8FAFB' },
+                { id:0, code:'F', name:'Failing', class:'tier-f', barColor:'#4B5563' },
+                { id:1, code:'E', name:'Elementary', class:'tier-e', barColor:'#6B7280' },
+                { id:2, code:'D', name:'Developing', class:'tier-d', barColor:'#7C5C3B' },
+                { id:3, code:'C', name:'Capable', class:'tier-c', barColor:'#4B7F52' },
+                { id:4, code:'B', name:'Balanced', class:'tier-b', barColor:'#3B82F6' },
+                { id:5, code:'A', name:'Advanced', class:'tier-a', barColor:'#2563EB' },
+                { id:6, code:'S', name:'Superior', class:'tier-s', barColor:'#7C3AED' },
+                { id:7, code:'SS', name:'Supremely Skilled', class:'tier-ss', barColor:'#9333EA' },
+                { id:8, code:'EX', name:'Exceptional', class:'tier-ex', barColor:'#FACC15' },
+                { id:9, code:'MR', name:'Master Rank', class:'tier-mr', barColor:'#EAB308' },
+                { id:10, code:'UR', name:'Ultra Rare', class:'tier-ur', barColor:'#22D3EE' },
+                { id:11, code:'EXR', name:'Extreme Rank', class:'tier-exr', barColor:'#DC2626' },
+                { id:12, code:'HS', name:'High Spec', class:'tier-hs', barColor:'#F59E0B' },
+                { id:13, code:'PS', name:'Peak State', class:'tier-ps', barColor:'#F8FAFB' },
                 { id:14, code:'MAX', name:'Maximum', class:'tier-max', barColor:'#FDE68A' }
             ],
+
+            // Difficulty Settings
             DIFFICULTY: {
                 easy: { id: 'easy', label: 'Mudah', pts: 2, color: 'text-neonGreen', border: 'border-neonGreen', hex: '#10b981' },
                 medium: { id: 'medium', label: 'Sedang', pts: 4, color: 'text-neonCyan', border: 'border-neonCyan', hex: '#06b6d4' },
@@ -186,32 +252,29 @@
             }
         };
 
-        // UTILS - FORCED WIB TIMEZONE
+        /**
+         * MODULE 2: UTILITIES
+         */
         class Utils {
-            static generateId() { return crypto.randomUUID(); }
-            
-            // STRICT WIB (Asia/Jakarta) TIMEZONE FORCE
-            static getWIBDate(d = new Date()) {
-                return new Date(d.toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
+            static generateId() { 
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
             }
-
-            static getISO(d = null) {
-                // Return YYYY-MM-DD in WIB
-                const date = d ? d : new Date();
-                const options = { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' };
-                // Format returns MM/DD/YYYY or DD/MM/YYYY depending on locale, so we use en-CA for YYYY-MM-DD
-                return new Intl.DateTimeFormat('en-CA', options).format(date);
+            static getISO(d = new Date()) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth()+1).padStart(2,'0');
+                const day = String(d.getDate()).padStart(2,'0');
+                return `${y}-${m}-${day}`;
             }
-
             static getTomorrow() { 
-                const d = new Date(); 
-                // Add 24 hours
-                d.setDate(d.getDate() + 1); 
+                const d = new Date(); d.setDate(d.getDate()+1); 
                 return this.getISO(d); 
             }
-
-            static getMonthKey(iso) { return iso.slice(0, 7); }
-            
+            static getMonthKey(iso) {
+                return iso.slice(0, 7);
+            }
             static formatMonth(iso) { 
                 const [y,m]=iso.split('-'); 
                 return new Date(y,parseInt(m)-1).toLocaleDateString('id-ID',{month:'long',year:'numeric'}).toUpperCase(); 
@@ -219,21 +282,40 @@
             static formatDate(iso) { 
                 return new Date(iso).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); 
             }
-            static formatCurrency(n) { return new Intl.NumberFormat('id-ID').format(n); }
+            static formatCurrency(n) { 
+                return new Intl.NumberFormat('id-ID').format(n); 
+            }
+            static getCurrentSlot() {
+                const h = new Date().getHours();
+                // Find strict slot (not 'all')
+                return Config.TIME_SLOTS.find(s => s.id !== 'all' && h >= s.start && h < s.end) || Config.TIME_SLOTS[0];
+            }
         }
 
-        // SERVICES
+        /**
+         * MODULE 3: DATA SERVICES (MODEL)
+         */
         class Store {
-            static get(k) { try { return JSON.parse(localStorage.getItem(Config.PREFIX + k)) || []; } catch { return []; } }
-            static set(k, v) { localStorage.setItem(Config.PREFIX + k, JSON.stringify(v)); }
+            static get(key) { 
+                try { 
+                    const data = localStorage.getItem(Config.STORAGE_PREFIX + key);
+                    return data ? JSON.parse(data) : []; 
+                } catch { return []; } 
+            }
+            static set(key, data) { 
+                localStorage.setItem(Config.STORAGE_PREFIX + key, JSON.stringify(data)); 
+            }
         }
 
+        /**
+         * MODULE 4: GAME ENGINE (LOGIC)
+         */
         class Engine {
             static calcPoints(tasks) {
                 const today = Utils.getISO();
                 const monthKey = today.slice(0, 7);
                 const d = new Date(); d.setMonth(d.getMonth() - 1);
-                const prevMonthKey = Utils.getISO(d).slice(0,7); // Approximate prev month
+                const prevMonthKey = Utils.getISO(d).slice(0,7);
                 
                 let cur = 0, mon = 0, last = 0;
                 tasks.forEach(t => {
@@ -261,35 +343,106 @@
                     const total = ts.length;
                     const failed = ts.some(t => t.status === 'failed');
 
-                    let eRes = (done===total && total>0) ? 1 : (failed || done<total) ? -1 : 0;
-                    if(eRes===1) { eBar++; if(eBar>2) { if(eTier<14){eTier++; eBar=1;} else eBar=2; } }
-                    else if(eRes===-1) { eBar--; if(eBar<0) { if(eTier>0){eTier--; eBar=1;} else eBar=0; } }
+                    // EXECUTION Logic
+                    let eWin = (done === total && total > 0);
+                    let eLose = (failed || done < total);
+                    if(eWin) { eBar++; if(eBar>2) { if(eTier<14){eTier++; eBar=1;} else eBar=2; } }
+                    else if(eLose) { eBar--; if(eBar<0) { if(eTier>0){eTier--; eBar=1;} else eBar=0; } }
                     
-                    let cRes = (done>=1) ? 1 : -1;
-                    if(cRes===1) { cBar++; if(cBar>2) { if(cTier<14){cTier++; cBar=1;} else cBar=2; } }
-                    else if(cRes===-1) { cBar--; if(cBar<0) { if(cTier>0){cTier--; cBar=1;} else cBar=0; } }
+                    // CONSISTENCY Logic
+                    let cWin = (done >= 1);
+                    let cLose = (done === 0);
+                    if(cWin) { cBar++; if(cBar>2) { if(cTier<14){cTier++; cBar=1;} else cBar=2; } }
+                    else if(cLose) { cBar--; if(cBar<0) { if(cTier>0){cTier--; cBar=1;} else cBar=0; } }
                 });
-                return { exec: { tier: Config.TIERS[eTier], bars: eBar }, cons: { tier: Config.TIERS[cTier], bars: cBar } };
+                return { 
+                    exec: { tier: Config.TIERS[eTier], bars: eBar }, 
+                    cons: { tier: Config.TIERS[cTier], bars: cBar } 
+                };
             }
 
+            // CRITICAL: Logic Auto-Fail Diperketat
             static checkAutoFail(tasks) {
-                const now = new Date(); // Browser time (assumed close to WIB or user local)
-                const h = now.getHours();
-                const t = Utils.getISO();
-                let chg = false;
-                tasks.forEach(x => {
-                    if(x.date === t && x.status === 'pending') {
-                        const slot = Config.TIME_SLOTS.find(s => s.id === (x.timeSlot||'all'));
-                        if(slot && slot.id!=='all' && h >= slot.end) { x.status = 'failed'; chg = true; }
+                const h = new Date().getHours();
+                const today = Utils.getISO();
+                let hasChange = false;
+
+                tasks.forEach(task => {
+                    if(task.date === today && task.status === 'pending') {
+                        const slot = Config.TIME_SLOTS.find(s => s.id === (task.timeSlot||'all'));
+                        
+                        // Jika slot bukan 'all' dan jam sekarang >= jam akhir slot
+                        // Contoh: HALT (0-2). Jam 2 (02:00). 2 >= 2 => True. FAIL.
+                        if(slot && slot.id !== 'all' && h >= slot.end) {
+                            task.status = 'failed';
+                            hasChange = true;
+                        }
                     }
                 });
-                return chg;
+                return hasChange;
             }
         }
 
-        // COMPONENTS
-        class ComponentFactory {
-            static rankCard(title, data, icon) {
+        /**
+         * MODULE 5: VISUAL EFFECTS SYSTEM
+         */
+        class VFXEngine {
+            constructor() {
+                this.canvas = document.getElementById('particle-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.particles = [];
+                this.init();
+            }
+
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                for(let i=0; i<40; i++) this.particles.push(this.createParticle());
+                this.animate();
+            }
+
+            resize() {
+                this.width = this.canvas.width = window.innerWidth;
+                this.height = this.canvas.height = window.innerHeight;
+            }
+
+            createParticle() {
+                return {
+                    x: Math.random() * this.width,
+                    y: Math.random() * this.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 2,
+                    alpha: Math.random() * 0.5
+                };
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if(p.x < 0) p.x = this.width;
+                    if(p.x > this.width) p.x = 0;
+                    if(p.y < 0) p.y = this.height;
+                    if(p.y > this.height) p.y = 0;
+                    
+                    this.ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        /**
+         * MODULE 6: UI COMPONENT FACTORY
+         */
+        const ComponentFactory = {
+            rankCard(title, data, icon) {
                 const t = data.tier;
                 let bars = '';
                 for(let i=1; i<=2; i++) {
@@ -297,37 +450,50 @@
                     const style = active ? `background-color:${t.barColor}; box-shadow:0 0 10px ${t.barColor}` : `background-color:#334155`;
                     bars += `<div class="w-1/2 h-1.5 rounded-full transition-all duration-500" style="${style}"></div>`;
                 }
+
                 return `
                 <div class="glass-card p-5 rounded-2xl flex-1 flex flex-col items-center justify-between relative overflow-hidden group min-h-[140px] hover:bg-white/5 transition-colors cursor-default">
                     <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
                     <div class="flex items-center justify-between w-full mb-2 z-10">
                         <span class="text-[8px] font-mono text-slate-400 font-bold tracking-widest">${title}</span>
                         <i data-lucide="${icon}" class="w-3 h-3 text-slate-500"></i>
                     </div>
-                    <div class="font-display text-5xl mb-2 z-10 ${t.class}">${t.code}</div>
+
+                    <div class="font-display text-5xl mb-2 z-10 ${t.class}">
+                        ${t.code}
+                    </div>
+
                     <div class="text-[9px] text-white font-bold tracking-[0.2em] z-10 mb-4 uppercase opacity-80">${t.name}</div>
+                    
                     <div class="flex gap-1 w-full max-w-[60px] z-10">${bars}</div>
                 </div>`;
-            }
+            },
 
-            static taskItem(t, isToday) {
+            taskItem(t, isToday) {
                 const slot = Config.TIME_SLOTS.find(s=>s.id === (t.timeSlot||'all'));
                 const diff = Config.DIFFICULTY[t.difficulty];
-                let act = '';
+                
+                let action = '';
                 if (isToday && t.status === 'pending') {
-                    act = `<div class="flex gap-2"><button onclick="App.controller.updateTask('${t.id}','failed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonRed/30 text-neonRed flex items-center justify-center hover:bg-neonRed/20 active:scale-95 transition-all"><i data-lucide="x" class="w-4 h-4"></i></button><button onclick="App.controller.updateTask('${t.id}','completed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonGreen/30 text-neonGreen flex items-center justify-center hover:bg-neonGreen/20 active:scale-95 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]"><i data-lucide="check" class="w-4 h-4"></i></button></div>`;
+                    action = `
+                    <div class="flex gap-2">
+                        <button onclick="App.controller.updateTask('${t.id}','failed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonRed/30 text-neonRed flex items-center justify-center hover:bg-neonRed/20 active:scale-95 transition-all"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        <button onclick="App.controller.updateTask('${t.id}','completed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonGreen/30 text-neonGreen flex items-center justify-center hover:bg-neonGreen/20 active:scale-95 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]"><i data-lucide="check" class="w-4 h-4"></i></button>
+                    </div>`;
                 } else if (!isToday) {
-                    act = `<button onclick="App.controller.deleteTask('${t.id}')" class="text-slate-500 hover:text-neonRed p-2 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+                    action = `<button onclick="App.controller.deleteTask('${t.id}')" class="text-slate-500 hover:text-neonRed p-2 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
                 } else {
-                    const i = t.status==='completed'?'check-circle':'x-circle';
-                    const c = t.status==='completed'?'text-neonGreen':'text-neonRed';
-                    act = `<i data-lucide="${i}" class="${c} w-5 h-5 drop-shadow-lg"></i>`;
+                    const icon = t.status === 'completed' ? 'check-circle' : 'x-circle';
+                    const col = t.status === 'completed' ? 'text-neonGreen' : 'text-neonRed';
+                    action = `<i data-lucide="${icon}" class="${col} w-5 h-5 drop-shadow-lg"></i>`;
                 }
-                const op = t.status==='pending' ? 'opacity-100' : 'opacity-60 grayscale';
-                const fl = t.status==='failed' ? 'bg-neonRed/5 border-neonRed/20' : '';
+
+                const opacity = t.status === 'pending' ? 'opacity-100' : 'opacity-60 grayscale hover:grayscale-0 transition-all duration-300';
+                const failBg = t.status === 'failed' ? 'bg-neonRed/5 border-neonRed/20' : '';
 
                 return `
-                <div class="glass-card p-4 rounded-xl flex items-center justify-between ${op} ${fl} mb-3 group hover:border-white/20 transition-all">
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between ${opacity} ${failBg} mb-3 group hover:border-white/20 transition-all">
                     <div class="flex-1 pr-3">
                         <div class="flex items-center gap-2 mb-1.5">
                             <span class="text-[8px] font-mono font-bold text-slate-300 bg-slate px-1.5 py-0.5 rounded border border-white/5">${slot.label}</span>
@@ -335,11 +501,11 @@
                         </div>
                         <p class="text-sm text-white font-medium leading-snug ${t.status==='failed'?'line-through text-neonRed/70':''}">${t.text}</p>
                     </div>
-                    <div>${act}</div>
+                    <div>${action}</div>
                 </div>`;
-            }
+            },
 
-            static rankLegend() {
+            rankLegend() {
                 return Config.TIERS.slice().reverse().map(t => `
                 <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
                     <div class="font-display w-8 text-center text-lg ${t.class}">${t.code}</div>
@@ -350,7 +516,9 @@
             }
         };
 
-        // CONTROLLER
+        /**
+         * MODULE 7: MAIN CONTROLLER
+         */
         const Controller = {
             state: {
                 view: 'home',
@@ -361,34 +529,38 @@
             },
 
             init() {
-                // Initialize Visuals
                 new VFXEngine();
                 
-                // Initialize Header
                 const monthDisplay = document.getElementById('header-month');
-                if (monthDisplay) monthDisplay.innerText = Utils.formatMonth(Utils.getMonthKey(Utils.getISO()));
-                
-                // Display Current Date in Header for confirmation
-                const statusDisplay = document.getElementById('header-status');
-                if (statusDisplay) statusDisplay.innerText = Utils.formatDate(Utils.getISO()).toUpperCase();
+                if (monthDisplay) {
+                    monthDisplay.innerText = Utils.formatMonth(Utils.getMonthKey(Utils.getISO()));
+                }
 
-                // Initialize Render
                 this.render();
 
-                // Start Auto-Fail Loop
+                // Auto-Fail Loop Check Every 10s
                 setInterval(() => {
                     const tasks = Store.get('tasks');
                     if (Engine.checkAutoFail(tasks)) {
                         Store.set('tasks', tasks);
-                        this.toast('Misi gagal karena waktu habis', 'error');
+                        this.toast('Waktu misi telah habis!', 'error');
                         if(this.state.view === 'home') this.render();
                     }
-                }, 15000);
+                }, 10000);
             },
 
-            navigate(view) { this.state.view = view; this.render(); },
-            setDifficulty(d) { this.state.difficulty = d; this.render(); },
+            // --- NAVIGATION ---
+            navigate(view) { 
+                this.state.view = view; 
+                this.render(); 
+            },
             
+            setDifficulty(d) { 
+                this.state.difficulty = d; 
+                this.render(); 
+            },
+
+            // --- ACTIONS ---
             initTask() {
                 const input = document.getElementById('task-in');
                 const text = input.value.trim();
@@ -406,7 +578,7 @@
                     text: this.state.tempTask.text,
                     difficulty: this.state.tempTask.difficulty,
                     timeSlot: slotId,
-                    date: Utils.getTomorrow(),
+                    date: Utils.getTomorrow(), // Always schedule for tomorrow
                     status: 'pending',
                     createdAt: new Date().toISOString()
                 });
@@ -422,6 +594,7 @@
                 if (t) {
                     t.status = status;
                     Store.set('tasks', tasks);
+                    
                     if (status === 'completed') {
                         const { mon } = Engine.calcPoints(tasks);
                         const rewards = Store.get('rewards');
@@ -429,7 +602,8 @@
                             if (r.status === 'active' && mon >= r.cost) {
                                 setTimeout(() => {
                                     if(confirm(`Hadiah "${r.name}" tercapai! Klaim?`)) {
-                                        r.status = 'redeemed'; r.redeemedDate = Utils.getISO();
+                                        r.status = 'redeemed';
+                                        r.redeemedDate = Utils.getISO();
                                         Store.set('rewards', rewards);
                                         this.toast(`Hadiah "${r.name}" diklaim!`, 'success');
                                         this.render();
@@ -492,9 +666,12 @@
                 this.render();
             },
 
-            setDate(d) { this.state.histDate = d; this.render(); },
+            setDate(d) {
+                this.state.histDate = d;
+                this.render();
+            },
 
-            // UI HELPERS
+            // --- UI HELPERS ---
             toast(msg, type='info') {
                 const el = document.getElementById('toast-layer');
                 const div = document.createElement('div');
@@ -510,9 +687,9 @@
             openModal() {
                 const m = document.getElementById('modal-layer');
                 m.innerHTML = `
-                <div class="bg-charcoal border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-2xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto animate-[float_0.3s_ease-out]">
+                <div class="bg-charcoal border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-2xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto animate-[slideIn_0.3s_ease-out]">
                     <button onclick="App.controller.closeModal()" class="absolute top-6 right-6 text-slate-500 hover:text-white bg-slate-800/50 p-2 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
-                    <div class="mb-6"><h3 class="text-xl font-bold text-white mb-1">Time Protocol</h3><p class="text-slate-400 text-xs font-mono">Pilih slot waktu:</p></div>
+                    <div class="mb-6"><h3 class="text-xl font-bold text-white mb-1">Time Protocol</h3><p class="text-slate-400 text-xs font-mono">Pilih slot waktu eksekusi:</p></div>
                     <div class="grid grid-cols-2 gap-2 h-64 overflow-y-auto custom-scroll pr-1">
                         ${Config.TIME_SLOTS.map(s => `<button onclick="App.controller.confirmTask('${s.id}')" class="glass-card p-3 rounded-xl hover:border-neonCyan hover:bg-slate-800 text-left group active:scale-95 transition-all"><span class="text-neonCyan font-mono font-bold text-sm block group-hover:text-white transition-colors">${s.label}</span><span class="text-slate-300 text-[10px] block opacity-70">${s.range}</span></button>`).join('')}
                     </div>
@@ -527,18 +704,23 @@
                 setTimeout(() => m.innerHTML='', 300);
             },
 
-            // RENDER ENGINE
+            // --- RENDER ENGINE ---
             render() {
+                // 1. Pre-Check Auto Fails before rendering
+                const tasksRaw = Store.get('tasks');
+                if(Engine.checkAutoFail(tasksRaw)) { Store.set('tasks', tasksRaw); }
+
                 const tasks = Store.get('tasks');
                 const rewards = Store.get('rewards');
                 const reflections = Store.get('reflections');
+                
                 const today = Utils.getISO();
                 const monthKey = Utils.getISO().slice(0, 7);
-
-                // Update Header
-                const hMonth = document.getElementById('header-month');
-                if(hMonth) hMonth.innerText = Utils.formatMonth(monthKey);
-
+                const currentSlot = Utils.getCurrentSlot();
+                
+                // Update Common Elements
+                document.getElementById('header-month').innerText = Utils.formatMonth(monthKey);
+                
                 // Update Nav
                 const navInner = document.getElementById('nav-inner');
                 const tabs = [{id:'home',l:'PETA',i:'map'},{id:'rank',l:'RANK',i:'swords'},{id:'rewards',l:'GIFT',i:'gift'},{id:'history',l:'LOGS',i:'history'}];
@@ -553,7 +735,16 @@
                     const pts = Engine.calcPoints(tasks);
                     const rnk = Engine.calcRank(monthKey, tasks);
                     const ref = reflections.find(r => r.date === today);
-                    const tToday = tasks.filter(t => t.date === today);
+                    
+                    // Filter Logic: Show Active Tasks
+                    // Aturan: Tampilkan jika tanggal hari ini DAN (Statusnya bukan pending [artinya selesai/gagal] ATAU Masuk slot waktu sekarang)
+                    const tActive = tasks.filter(t => {
+                        if (t.date !== today) return false;
+                        if (t.status !== 'pending') return true; // Tampilkan riwayat hari ini
+                        return t.timeSlot === currentSlot.id || t.timeSlot === 'all';
+                    });
+
+                    // Untuk melihat besok
                     const tTom = tasks.filter(t => t.date === Utils.getTomorrow());
 
                     const diffBtn = (d) => {
@@ -581,8 +772,14 @@
                         `<div class="p-5 rounded-xl border border-dashed border-slate-700 bg-slate/20"><label class="block text-slate-400 text-[10px] font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><i data-lucide="edit-3" class="w-3 h-3"></i> Refleksi Wajib</label><div class="flex gap-2"><input id="ref-in" type="text" placeholder="Apa yang dipelajari?" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none"><button onclick="App.controller.saveRef()" class="bg-neonPurple text-white px-4 rounded-lg shadow-lg"><i data-lucide="save" class="w-4 h-4"></i></button></div></div>`}
 
                         <div>
-                            <div class="flex justify-between mb-4 items-end border-b border-white/5 pb-2"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="crosshair" class="w-4 h-4 text-neonCyan"></i> MISI HARI INI</h2><span class="text-[9px] font-bold text-slate-500 bg-slate px-2 py-1 rounded border border-white/5">${tToday.length} TUGAS</span></div>
-                            <div class="space-y-0">${tToday.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">TIDAK ADA DATA</div>' : tToday.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
+                            <div class="flex justify-between mb-4 items-end border-b border-white/5 pb-2">
+                                <h2 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="crosshair" class="w-4 h-4 text-neonCyan"></i> MISI AKTIF</h2>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-[9px] text-neonCyan font-mono font-bold uppercase tracking-widest">${currentSlot.label} PHASE</span>
+                                    <span class="text-[8px] text-slate-500 font-mono">${currentSlot.range}</span>
+                                </div>
+                            </div>
+                            <div class="space-y-0">${tActive.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">TIDAK ADA MISI FASE INI</div>' : tActive.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
                         </div>
 
                         <div class="flex items-center justify-center opacity-20 py-2"><div class="h-px bg-white w-full"></div><div class="mx-4 text-[9px] font-mono text-white whitespace-nowrap">NEXT CYCLE</div><div class="h-px bg-white w-full"></div></div>
@@ -592,7 +789,7 @@
                             <div class="glass-card p-5 rounded-xl space-y-4 mb-4">
                                 <input id="task-in" type="text" placeholder="Input nama misi..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
                                 <div class="flex gap-2">${['easy','medium','hard'].map(diffBtn).join('')}</div>
-                                <button onclick="App.controller.initTask()" class="w-full btn-action bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian font-bold py-3 rounded-lg text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.3)] flex justify-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Lanjut ke Waktu</button>
+                                <button onclick="App.controller.initTask()" class="w-full btn-action bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian font-bold py-3 rounded-lg text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.3)] flex justify-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Jadwalkan</button>
                             </div>
                             <div class="space-y-0">${tTom.map(t => ComponentFactory.taskItem(t, false)).join('')}</div>
                         </div>
@@ -667,56 +864,6 @@
                 lucide.createIcons();
             }
         };
-
-        // --- 5. INITIALIZATION ---
-        // VISUAL EFFECTS ENGINE
-        class VFXEngine {
-            constructor() {
-                this.canvas = document.getElementById('particle-canvas');
-                if(!this.canvas) return;
-                this.ctx = this.canvas.getContext('2d');
-                this.width = window.innerWidth;
-                this.height = window.innerHeight;
-                this.particles = [];
-                this.init();
-            }
-            init() {
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
-                for(let i=0; i<40; i++) this.particles.push(this.createParticle());
-                this.animate();
-            }
-            resize() {
-                this.width = this.canvas.width = window.innerWidth;
-                this.height = this.canvas.height = window.innerHeight;
-            }
-            createParticle() {
-                return {
-                    x: Math.random() * this.width,
-                    y: Math.random() * this.height,
-                    vx: (Math.random() - 0.5) * 0.3,
-                    vy: (Math.random() - 0.5) * 0.3,
-                    size: Math.random() * 2,
-                    alpha: Math.random() * 0.5
-                };
-            }
-            animate() {
-                this.ctx.clearRect(0, 0, this.width, this.height);
-                this.particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if(p.x < 0) p.x = this.width;
-                    if(p.x > this.width) p.x = 0;
-                    if(p.y < 0) p.y = this.height;
-                    if(p.y > this.height) p.y = 0;
-                    this.ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha})`;
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fill();
-                });
-                requestAnimationFrame(() => this.animate());
-            }
-        }
 
         const App = { controller: Controller };
         window.addEventListener('DOMContentLoaded', () => App.controller.init());
