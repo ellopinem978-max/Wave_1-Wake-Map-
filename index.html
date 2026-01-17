@@ -346,37 +346,51 @@
 
                 // CRITICAL FIX: Ensure dates include today if there are tasks today
                 const dates = [...new Set(mTasks.map(t => t.date))].sort();
-                const today = Utils.getISO();
+                
+                // Accumulators for total successful days
+                let eWins = 0;
+                let cWins = 0;
 
                 dates.forEach(d => {
-                    const isToday = (d === today);
                     const ts = mTasks.filter(t => t.date === d);
                     const done = ts.filter(t => t.status === 'completed').length;
                     const total = ts.length;
-                    const failed = ts.some(t => t.status === 'failed');
                     
                     // Calc total points for the day
                     const dayPoints = ts.reduce((acc, t) => acc + (t.status === 'completed' ? Config.DIFFICULTY[t.difficulty].pts : 0), 0);
 
-                    // EXECUTION Logic (Completion Rate)
-                    let eWin = (done === total && total > 0);
-                    let eLose = (failed || (done < total && !isToday));
+                    // EXECUTION Logic (Completion Rate): All tasks done
+                    if (done === total && total > 0) {
+                        eWins++;
+                    }
                     
-                    if(eWin) { eBar++; if(eBar>2) { if(eTier<14){eTier++; eBar=1;} else eBar=2; } }
-                    else if(eLose) { eBar--; if(eBar<0) { if(eTier>0){eTier--; eBar=1;} else eBar=0; } }
-                    
-                    // CONSISTENCY Logic (Points Target) - CHANGED LOGIC HERE
-                    // Win: Reached daily points target
-                    // Lose: Failed to reach target (only finalized if day is over)
-                    let cWin = (dayPoints >= dailyTarget);
-                    let cLose = (dayPoints < dailyTarget && !isToday);
-
-                    if(cWin) { cBar++; if(cBar>2) { if(cTier<14){cTier++; cBar=1;} else cBar=2; } }
-                    else if(cLose) { cBar--; if(cBar<0) { if(cTier>0){cTier--; cBar=1;} else cBar=0; } }
+                    // CONSISTENCY Logic (Points Target): Daily Target Met
+                    if (dayPoints >= dailyTarget) {
+                        cWins++;
+                    }
                 });
+
+                // --- NEW RANKING LOGIC (Cumulative, No Penalty, 2 Days = 1 Bar) ---
+                // Max Tier Index is Config.TIERS.length - 1 (14)
+                const maxTier = Config.TIERS.length - 1;
+
+                // EXECUTION
+                // 4 Wins = 1 Tier (2 Bars x 2 Wins/Bar)
+                let eTierIndex = Math.floor(eWins / 4);
+                if (eTierIndex > maxTier) eTierIndex = maxTier;
+                // Bars = Remainder / 2. (0-1: 0 bars, 2-3: 1 bar)
+                let eBars = Math.floor((eWins % 4) / 2);
+                if (eTierIndex === maxTier) eBars = 2; // Full bars at max rank
+
+                // CONSISTENCY
+                let cTierIndex = Math.floor(cWins / 4);
+                if (cTierIndex > maxTier) cTierIndex = maxTier;
+                let cBars = Math.floor((cWins % 4) / 2);
+                if (cTierIndex === maxTier) cBars = 2;
+
                 return { 
-                    exec: { tier: Config.TIERS[eTier], bars: eBar }, 
-                    cons: { tier: Config.TIERS[cTier], bars: cBar },
+                    exec: { tier: Config.TIERS[eTierIndex], bars: eBars }, 
+                    cons: { tier: Config.TIERS[cTierIndex], bars: cBars },
                     dailyTarget: dailyTarget
                 };
             }
@@ -968,7 +982,7 @@
                         ${ref ? `<div class="glass-card p-5 rounded-xl border-l-4 border-l-neonPurple"><div class="flex items-center gap-2 mb-2 text-neonPurple"><i data-lucide="brain-circuit" class="w-4 h-4"></i><span class="text-[10px] font-bold uppercase tracking-widest">LOG REFLEKSI</span></div><p class="text-sm text-slate-200 italic">"${ref.text}"</p></div>` : 
                         `<div class="p-5 rounded-xl border border-dashed border-slate-700 bg-slate/20"><label class="block text-slate-400 text-[10px] font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><i data-lucide="edit-3" class="w-3 h-3"></i> Refleksi Wajib</label><div class="flex gap-2"><input id="ref-in" type="text" placeholder="Apa yang dipelajari?" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none"><button onclick="App.controller.saveRef()" class="bg-neonPurple text-white px-4 rounded-lg shadow-lg"><i data-lucide="save" class="w-4 h-4"></i></button></div></div>`}
 
-                        <!-- SECTION: MISI GAGAL -->
+                        <!-- SECTION: MISI GAGAL (Hanya muncul jika ada) -->
                         ${tFailed.length > 0 ? `
                         <div>
                              <div class="flex justify-between mb-2 items-center border-b border-neonRed/20 pb-2">
@@ -977,7 +991,7 @@
                             <div class="space-y-0">${tFailed.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
                         </div>` : ''}
 
-                         <!-- SECTION: MISI SELESAI -->
+                         <!-- SECTION: MISI SELESAI (NEW) -->
                         ${tCompleted.length > 0 ? `
                         <div>
                              <div class="flex justify-between mb-2 items-center border-b border-neonGreen/20 pb-2">
@@ -998,7 +1012,7 @@
                             <div class="space-y-0">${tActive.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">ISTIRAHAT / FASE KOSONG</div>' : tActive.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
                         </div>
 
-                        <!-- SECTION: MISI AKAN DATANG -->
+                        <!-- SECTION: MISI AKAN DATANG (Hanya muncul jika ada) -->
                         ${tUpcoming.length > 0 ? `
                         <div>
                              <div class="flex justify-between mb-2 items-center border-b border-neonPurple/20 pb-2">
@@ -1058,9 +1072,35 @@
                     const active = rewards.filter(r => r.status === 'active');
                     const redeemed = rewards.filter(r => r.status === 'redeemed').sort((a,b)=>new Date(b.redeemedDate)-new Date(a.redeemedDate));
                     
-                    let financeInfo = '';
-                    if(!myFinance) {
-                        financeInfo = `<div class="p-3 bg-neonRed/10 border border-neonRed/30 rounded-lg text-center mb-4"><p class="text-xs text-neonRed font-bold">⚠️ Protokol belum dikalibrasi</p><p class="text-[10px] text-slate-400">Silakan isi data keuangan di menu PETA.</p></div>`;
+                    // --- FINANCE LOGIC ---
+                    const curMonthKey = Utils.getMonthKey(Utils.getISO());
+                    const myFinance = financeData.find(f => f.month === curMonthKey);
+                    
+                    let financeSection = '';
+                    if (!myFinance) {
+                        financeSection = `
+                        <div class="glass-card p-5 rounded-xl border border-neonGold/30 bg-neonGold/5 mb-4 animate-[fadeIn_0.4s]">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i data-lucide="coins" class="w-5 h-5 text-neonGold"></i>
+                                <h3 class="text-sm font-bold text-white">Setup Keuangan Bulan Ini</h3>
+                            </div>
+                            <p class="text-xs text-slate-400 mb-3 leading-relaxed">Masukkan anggaran/gaji Anda bulan ini untuk mengaktifkan kalkulator target hadiah cerdas.</p>
+                            <div class="flex gap-2">
+                                <input id="income-in" type="number" placeholder="Contoh: 1800000" class="flex-1 bg-obsidian text-white rounded-lg px-4 py-2 text-sm border border-slate-700 focus:border-neonGold outline-none">
+                                <button onclick="App.controller.saveMonthlyIncome()" class="bg-neonGold text-obsidian px-4 rounded-lg font-bold hover:bg-white transition-colors">Simpan</button>
+                            </div>
+                        </div>`;
+                    } else {
+                        // Info Valuasi Kecil
+                        const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+                        const dailyIncome = myFinance.amount / daysInMonth;
+                        const valPerPoint = Math.max(1, Math.round(dailyIncome / (myFinance.targetPts || 10)));
+                        
+                        financeSection = `
+                        <div class="mb-4 flex justify-between items-center text-[10px] text-slate-500 font-mono border-b border-white/5 pb-2">
+                            <span>BUDGET: Rp ${Utils.formatCurrency(myFinance.amount)}</span>
+                            <span>1 PTS ≈ Rp ${Utils.formatCurrency(valPerPoint)}</span>
+                        </div>`;
                     }
 
                     // --- REWARD FORM LOGIC ---
@@ -1101,7 +1141,7 @@
                     <div class="space-y-6 animate-[fadeIn_0.4s_ease-out] pt-4">
                         <div class="glass-card p-8 rounded-2xl text-center relative overflow-hidden"><div class="absolute inset-0 bg-gradient-to-br from-neonCyan/10 to-transparent"></div><p class="text-neonCyan mb-2 text-[10px] uppercase tracking-[0.3em] font-bold relative z-10">SALDO POIN</p><p class="text-6xl font-black text-white drop-shadow-[0_0_20px_rgba(6,182,212,0.5)] font-mono relative z-10">${Utils.formatCurrency(mon)}</p></div>
                         
-                        ${financeInfo}
+                        ${financeSection}
 
                         <div class="space-y-2"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonCyan">Target Baru</h3><div class="glass-card p-4 rounded-xl space-y-3">${rewardForm}</div></div>
                         <div class="space-y-3"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonPurple">Wishlist</h3>${active.length===0?'<div class="text-center py-8 text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">KOSONG</div>':active.map(r=>{const p=Math.min((mon/r.cost)*100,100); const col=mon>=r.cost?'bg-neonGreen':'bg-gradient-to-r from-neonCyan to-neonPurple'; return `
