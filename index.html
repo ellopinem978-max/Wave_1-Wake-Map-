@@ -256,7 +256,7 @@
                 hard: { id: 'hard', label: 'Sulit', pts: 6, color: 'text-neonPurple', border: 'border-neonPurple', hex: '#8b5cf6' }
             },
 
-            // Productivity Modes (NEW)
+            // Productivity Modes
             PRODUCTIVITY_MODES: [
                 { id: 'hibernasi', label: 'Hibernasi', pts: 8, desc: 'Recovery Mode', icon: 'battery-charging', color: 'text-slate-400' },
                 { id: 'inisiasi', label: 'Inisiasi', pts: 16, desc: 'Starter', icon: 'sprout', color: 'text-neonGreen' },
@@ -597,8 +597,13 @@
                 }
 
                 const opacity = t.status === 'pending' ? 'opacity-100' : 'opacity-60 grayscale hover:grayscale-0 transition-all duration-300';
-                const failBg = t.status === 'failed' ? 'bg-neonRed/5 border-neonRed/20' : '';
+                
+                // UPDATED: Failed styling
+                const failBg = t.status === 'failed' ? 'bg-neonRed/10 border-neonRed/40 relative overflow-hidden' : '';
                 const styleUpcoming = (isToday && t.status === 'pending' && !action.includes('check')) ? 'border-dashed border-slate-700 bg-transparent' : '';
+                
+                // UPDATED: Text style logic for failed tasks
+                const textStyle = t.status === 'failed' ? 'text-neonRed font-bold' : 'text-white font-medium';
 
                 return `
                 <div class="glass-card p-4 rounded-xl flex items-center justify-between ${opacity} ${failBg} ${styleUpcoming} mb-3 group hover:border-white/20 transition-all">
@@ -607,7 +612,7 @@
                             <span class="text-[8px] font-mono font-bold text-slate-300 bg-slate px-1.5 py-0.5 rounded border border-white/5">${slot.label}</span>
                             <span class="text-[8px] font-bold border px-1.5 py-0.5 rounded uppercase ${diff.color} ${diff.border} bg-white/5">${diff.label}</span>
                         </div>
-                        <p class="text-sm text-white font-medium leading-snug ${t.status==='failed'?'line-through text-neonRed/70':''}">${t.text}</p>
+                        <p class="text-sm ${textStyle} leading-snug">${t.text}</p>
                     </div>
                     <div>${action}</div>
                 </div>`;
@@ -637,7 +642,11 @@
                 rewardStep: 0, 
                 tempReward: { name: '', hasPrice: false, price: 0, cost: 0, recs: null },
                 showIncomeInput: false,
-                tempMode: null
+                tempMode: null,
+                // PERSISTENT INPUT STATES
+                tempIncome: '',
+                tempAlloc: '',
+                tempTaskInput: ''
             },
 
             init() {
@@ -671,6 +680,10 @@
             },
             
             setDifficulty(d) { 
+                // Capture input before re-render
+                const el = document.getElementById('task-in');
+                if(el) this.state.tempTaskInput = el.value;
+
                 this.state.difficulty = d; 
                 this.sound.play('click'); // AUDIO
                 this.render(); 
@@ -685,6 +698,7 @@
                     return; 
                 }
                 this.state.tempTask = { text, difficulty: this.state.difficulty };
+                this.state.tempTaskInput = ''; // Clear stored input
                 this.openModal();
                 input.value = '';
                 this.sound.play('click'); // AUDIO
@@ -767,6 +781,13 @@
 
             // --- FINANCE & REWARD ACTIONS ---
             selectMode(id) {
+                // Capture input before re-render
+                const incEl = document.getElementById('income-in');
+                const allocEl = document.getElementById('alloc-in');
+                
+                if(incEl) this.state.tempIncome = incEl.value;
+                if(allocEl) this.state.tempAlloc = allocEl.value;
+
                 this.state.tempMode = id;
                 this.sound.play('click');
                 this.render();
@@ -774,21 +795,34 @@
 
             saveMonthlyConfig() {
                 const incomeIn = document.getElementById('income-in').value;
+                const allocIn = document.getElementById('alloc-in').value;
                 const modeId = this.state.tempMode;
                 
                 if(!incomeIn || incomeIn <= 0) { this.toast('Nominal gaji tidak valid', 'error'); return; }
                 if(!modeId) { this.toast('Pilih mode operasi', 'error'); return; }
                 
+                // Set default allocation to 20% if not selected
+                const allocation = allocIn ? parseFloat(allocIn) : 0.2;
+
                 const mode = Config.PRODUCTIVITY_MODES.find(m => m.id === modeId);
                 const finance = Store.get('finance'); 
                 const monthKey = Utils.getMonthKey(Utils.getISO());
                 const newFinance = finance.filter(f => f.month !== monthKey);
-                newFinance.push({ month: monthKey, amount: parseInt(incomeIn), targetPts: mode.pts, modeId: modeId });
+                newFinance.push({ 
+                    month: monthKey, 
+                    amount: parseInt(incomeIn), 
+                    targetPts: mode.pts, 
+                    modeId: modeId,
+                    allocation: allocation 
+                });
                 
                 Store.set('finance', newFinance);
+                this.state.tempIncome = ''; 
+                this.state.tempAlloc = '';
+                this.state.tempMode = null;
+                
                 this.sound.play('success'); // AUDIO
                 this.toast(`Protokol: ${mode.label.toUpperCase()} diaktifkan!`, 'success');
-                this.state.tempMode = null;
                 this.render();
             },
 
@@ -824,10 +858,16 @@
 
                 if (myFinance) {
                     const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-                    const dailyIncome = myFinance.amount / daysInMonth;
+                    
+                    // NEW LOGIC: Calculate based on ALLOCATION percentage
+                    const allocation = myFinance.allocation || 0.2; // Default 20%
+                    const monthlyBudget = myFinance.amount * allocation;
+                    const dailyBudget = monthlyBudget / daysInMonth;
+                    
                     const dailyTarget = myFinance.targetPts || 10;
                     
-                    const valPerPoint = Math.max(1, Math.round(dailyIncome / dailyTarget)); 
+                    // Value per point based on daily reward budget
+                    const valPerPoint = Math.max(1, Math.round(dailyBudget / dailyTarget)); 
                     const price = parseInt(priceIn);
                     
                     const normalPts = Math.ceil(price / valPerPoint);
@@ -1111,6 +1151,9 @@
                     });
                     const tTom = tasks.filter(t => t.date === Utils.getTomorrow());
 
+                    // UPDATED: Calculate potential points for tomorrow
+                    const tTomPoints = tTom.reduce((acc, t) => acc + (Config.DIFFICULTY[t.difficulty]?.pts || 0), 0);
+
                     const diffBtn = (d) => {
                         const act = this.state.difficulty === d;
                         const c = Config.DIFFICULTY[d];
@@ -1131,7 +1174,15 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="text-[9px] text-slate-500 uppercase font-bold mb-1 block">Anggaran/Gaji (Rp)</label>
-                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
+                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" value="${this.state.tempIncome || ''}" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold mb-1 block">Alokasi Self Reward (%)</label>
+                                    <select id="alloc-in" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
+                                        <option value="0.1" ${this.state.tempAlloc === '0.1' ? 'selected' : ''}>10% (Mode Hemat)</option>
+                                        <option value="0.2" ${this.state.tempAlloc === '0.2' || !this.state.tempAlloc ? 'selected' : ''}>20% (Mode Wajar)</option>
+                                        <option value="0.3" ${this.state.tempAlloc === '0.3' ? 'selected' : ''}>30% (Mode Sultan)</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="text-[9px] text-slate-500 uppercase font-bold mb-2 block">Pilih Mode Operasi</label>
@@ -1244,9 +1295,12 @@
 
                         <!-- SECTION: PERENCANAAN BESOK -->
                         <div>
-                            <h2 class="text-sm font-bold text-white mb-4 flex items-center gap-2"><i data-lucide="sunrise" class="w-4 h-4 text-neonGold"></i> PERENCANAAN BESOK</h2>
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="sunrise" class="w-4 h-4 text-neonGold"></i> PERENCANAAN BESOK</h2>
+                                <span class="text-[10px] font-mono text-neonGold border border-neonGold/30 px-2 py-1 rounded bg-neonGold/10">POTENSI: +${tTomPoints} PTS</span>
+                            </div>
                             <div class="glass-card p-5 rounded-xl space-y-4 mb-4">
-                                <input id="task-in" type="text" placeholder="Input nama misi..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
+                                <input id="task-in" type="text" placeholder="Input nama misi..." value="${this.state.tempTaskInput || ''}" class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
                                 <div class="flex gap-2">${['easy','medium','hard'].map(diffBtn).join('')}</div>
                                 <button onclick="App.controller.initTask()" class="w-full btn-action bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian font-bold py-3 rounded-lg text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(6,182,212,0.3)] flex justify-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Jadwalkan</button>
                             </div>
@@ -1308,7 +1362,15 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="text-[9px] text-slate-500 uppercase font-bold mb-1 block">Anggaran/Gaji (Rp)</label>
-                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
+                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" value="${this.state.tempIncome || ''}" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold mb-1 block">Alokasi Self Reward (%)</label>
+                                    <select id="alloc-in" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
+                                        <option value="0.1" ${this.state.tempAlloc === '0.1' ? 'selected' : ''}>10% (Mode Hemat)</option>
+                                        <option value="0.2" ${this.state.tempAlloc === '0.2' || !this.state.tempAlloc ? 'selected' : ''}>20% (Mode Wajar)</option>
+                                        <option value="0.3" ${this.state.tempAlloc === '0.3' ? 'selected' : ''}>30% (Mode Sultan)</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="text-[9px] text-slate-500 uppercase font-bold mb-2 block">Pilih Mode Operasi</label>
@@ -1338,14 +1400,18 @@
                     } else {
                         // Info Valuasi Kecil
                         const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-                        const dailyIncome = myFinance.amount / daysInMonth;
-                        const valPerPoint = Math.max(1, Math.round(dailyIncome / (myFinance.targetPts || 10)));
+                        const allocation = myFinance.allocation || 0.2;
+                        const dailyBudget = (myFinance.amount * allocation) / daysInMonth;
+                        
+                        const dailyTarget = myFinance.targetPts || 10;
+                        const valPerPoint = Math.max(1, Math.round(dailyBudget / dailyTarget));
+                        
                         const mode = Config.PRODUCTIVITY_MODES.find(m => m.id === myFinance.modeId) || { label: 'Custom', color: 'text-white' };
                         
                         financeSection = `
                         <div class="mb-4 flex justify-between items-center text-[10px] text-slate-500 font-mono border-b border-white/5 pb-2">
                             <span>MODE: <span class="${mode.color} font-bold">${mode.label.toUpperCase()}</span></span>
-                            <span>1 PTS ≈ Rp ${Utils.formatCurrency(valPerPoint)}</span>
+                            <span title="Berdasarkan Alokasi ${allocation*100}%">1 PTS ≈ Rp ${Utils.formatCurrency(valPerPoint)}</span>
                         </div>`;
                     }
 
