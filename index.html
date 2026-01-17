@@ -481,7 +481,7 @@
                         <button onclick="App.controller.updateTask('${t.id}','failed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonRed/30 text-neonRed flex items-center justify-center hover:bg-neonRed/20 active:scale-95 transition-all"><i data-lucide="x" class="w-4 h-4"></i></button>
                         <button onclick="App.controller.updateTask('${t.id}','completed')" class="w-9 h-9 rounded-xl bg-slate/50 border border-neonGreen/30 text-neonGreen flex items-center justify-center hover:bg-neonGreen/20 active:scale-95 transition-all shadow-[0_0_10px_rgba(16,185,129,0.2)]"><i data-lucide="check" class="w-4 h-4"></i></button>
                     </div>`;
-                } else if (!isToday) {
+                } else if (!isToday && t.status === 'pending') {
                     action = `<button onclick="App.controller.deleteTask('${t.id}')" class="text-slate-500 hover:text-neonRed p-2 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
                 } else {
                     const icon = t.status === 'completed' ? 'check-circle' : 'x-circle';
@@ -491,9 +491,13 @@
 
                 const opacity = t.status === 'pending' ? 'opacity-100' : 'opacity-60 grayscale hover:grayscale-0 transition-all duration-300';
                 const failBg = t.status === 'failed' ? 'bg-neonRed/5 border-neonRed/20' : '';
+                
+                // Special styling for upcoming (inactive) today
+                const isUpcoming = isToday && t.status === 'pending' && !action.includes('check'); 
+                const styleUpcoming = isUpcoming ? 'border-dashed border-slate-700 bg-transparent' : '';
 
                 return `
-                <div class="glass-card p-4 rounded-xl flex items-center justify-between ${opacity} ${failBg} mb-3 group hover:border-white/20 transition-all">
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between ${opacity} ${failBg} ${styleUpcoming} mb-3 group hover:border-white/20 transition-all">
                     <div class="flex-1 pr-3">
                         <div class="flex items-center gap-2 mb-1.5">
                             <span class="text-[8px] font-mono font-bold text-slate-300 bg-slate px-1.5 py-0.5 rounded border border-white/5">${slot.label}</span>
@@ -525,7 +529,10 @@
                 difficulty: 'easy',
                 histMonth: Utils.getISO().slice(0, 7),
                 histDate: null,
-                tempTask: null
+                tempTask: null,
+                // New state for multi-step reward form
+                rewardStep: 0, 
+                tempReward: { name: '', hasPrice: false, price: 0, cost: 0 }
             },
 
             init() {
@@ -638,16 +645,51 @@
                 }
             },
 
-            addReward() {
-                const n = document.getElementById('rew-n').value.trim();
-                const c = parseInt(document.getElementById('rew-c').value);
-                if(n && c) {
-                    const r = Store.get('rewards');
-                    r.push({id:Utils.generateId(), name:n, cost:c, status:'active', redeemedDate:null});
-                    Store.set('rewards', r);
-                    this.toast('Target ditambahkan', 'success');
-                    this.render();
+            // --- REWARD SYSTEM ACTIONS ---
+            initReward() {
+                const nameIn = document.getElementById('rew-name').value.trim();
+                if(!nameIn) { this.toast('Nama hadiah wajib diisi', 'error'); return; }
+                
+                this.state.tempReward = { name: nameIn, hasPrice: false, price: 0, cost: 0 };
+                this.state.rewardStep = 1;
+                this.render();
+            },
+
+            setRewardHasPrice(hasPrice) {
+                this.state.tempReward.hasPrice = hasPrice;
+                this.state.rewardStep = 2;
+                this.render();
+            },
+
+            resetRewardForm() {
+                this.state.rewardStep = 0;
+                this.state.tempReward = { name: '', hasPrice: false, price: 0, cost: 0 };
+                this.render();
+            },
+
+            saveReward() {
+                const costIn = document.getElementById('rew-cost').value;
+                if(!costIn || costIn <= 0) { this.toast('Target poin wajib diisi', 'error'); return; }
+                
+                let priceVal = 0;
+                if(this.state.tempReward.hasPrice) {
+                    const priceIn = document.getElementById('rew-price').value;
+                    if(!priceIn || priceIn <= 0) { this.toast('Harga nominal wajib diisi', 'error'); return; }
+                    priceVal = parseInt(priceIn);
                 }
+
+                const r = Store.get('rewards');
+                r.push({
+                    id: Utils.generateId(),
+                    name: this.state.tempReward.name,
+                    cost: parseInt(costIn),
+                    price: priceVal, // Store real price
+                    status: 'active',
+                    redeemedDate: null
+                });
+                Store.set('rewards', r);
+                this.toast('Target ditambahkan', 'success');
+                this.resetRewardForm();
             },
 
             delReward(id) {
@@ -717,6 +759,7 @@
                 const today = Utils.getISO();
                 const monthKey = Utils.getISO().slice(0, 7);
                 const currentSlot = Utils.getCurrentSlot();
+                const currentHour = new Date().getHours();
                 
                 // Update Common Elements
                 document.getElementById('header-month').innerText = Utils.formatMonth(monthKey);
@@ -736,15 +779,27 @@
                     const rnk = Engine.calcRank(monthKey, tasks);
                     const ref = reflections.find(r => r.date === today);
                     
-                    // Filter Logic: Show Active Tasks
-                    // Aturan: Tampilkan jika tanggal hari ini DAN (Statusnya bukan pending [artinya selesai/gagal] ATAU Masuk slot waktu sekarang)
+                    // --- LOGIC FILTER BARU ---
+                    
+                    // 1. Misi Gagal Hari Ini (Failed)
+                    const tFailed = tasks.filter(t => t.date === today && t.status === 'failed');
+
+                    // 2. Misi Aktif Sekarang (Active)
+                    // Status pending DAN (Slot == currentSlot ATAU Slot == 'all')
                     const tActive = tasks.filter(t => {
-                        if (t.date !== today) return false;
-                        if (t.status !== 'pending') return true; // Tampilkan riwayat hari ini
-                        return t.timeSlot === currentSlot.id || t.timeSlot === 'all';
+                        return t.date === today && t.status === 'pending' && (t.timeSlot === currentSlot.id || t.timeSlot === 'all');
                     });
 
-                    // Untuk melihat besok
+                    // 3. Misi Akan Datang (Upcoming)
+                    // Status pending DAN Slot Start > Current Hour (Belum mulai)
+                    const tUpcoming = tasks.filter(t => {
+                        if (t.date !== today || t.status !== 'pending') return false;
+                        const slot = Config.TIME_SLOTS.find(s => s.id === t.timeSlot);
+                        // Hanya tampilkan jika slotnya spesifik (bukan all) dan start time-nya lebih besar dari jam sekarang
+                        return slot && slot.id !== 'all' && slot.start > currentHour; 
+                    });
+
+                    // 4. Perencanaan Besok (Tomorrow)
                     const tTom = tasks.filter(t => t.date === Utils.getTomorrow());
 
                     const diffBtn = (d) => {
@@ -771,6 +826,16 @@
                         ${ref ? `<div class="glass-card p-5 rounded-xl border-l-4 border-l-neonPurple"><div class="flex items-center gap-2 mb-2 text-neonPurple"><i data-lucide="brain-circuit" class="w-4 h-4"></i><span class="text-[10px] font-bold uppercase tracking-widest">LOG REFLEKSI</span></div><p class="text-sm text-slate-200 italic">"${ref.text}"</p></div>` : 
                         `<div class="p-5 rounded-xl border border-dashed border-slate-700 bg-slate/20"><label class="block text-slate-400 text-[10px] font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><i data-lucide="edit-3" class="w-3 h-3"></i> Refleksi Wajib</label><div class="flex gap-2"><input id="ref-in" type="text" placeholder="Apa yang dipelajari?" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none"><button onclick="App.controller.saveRef()" class="bg-neonPurple text-white px-4 rounded-lg shadow-lg"><i data-lucide="save" class="w-4 h-4"></i></button></div></div>`}
 
+                        <!-- SECTION: MISI GAGAL (Hanya muncul jika ada) -->
+                        ${tFailed.length > 0 ? `
+                        <div>
+                             <div class="flex justify-between mb-2 items-center border-b border-neonRed/20 pb-2">
+                                <h2 class="text-sm font-bold text-neonRed flex items-center gap-2"><i data-lucide="alert-octagon" class="w-4 h-4"></i> TERLEWAT / GAGAL</h2>
+                            </div>
+                            <div class="space-y-0">${tFailed.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
+                        </div>` : ''}
+
+                        <!-- SECTION: MISI AKTIF -->
                         <div>
                             <div class="flex justify-between mb-4 items-end border-b border-white/5 pb-2">
                                 <h2 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="crosshair" class="w-4 h-4 text-neonCyan"></i> MISI AKTIF</h2>
@@ -779,11 +844,21 @@
                                     <span class="text-[8px] text-slate-500 font-mono">${currentSlot.range}</span>
                                 </div>
                             </div>
-                            <div class="space-y-0">${tActive.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">TIDAK ADA MISI FASE INI</div>' : tActive.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
+                            <div class="space-y-0">${tActive.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">ISTIRAHAT / FASE KOSONG</div>' : tActive.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
                         </div>
+
+                        <!-- SECTION: MISI AKAN DATANG (Hanya muncul jika ada) -->
+                        ${tUpcoming.length > 0 ? `
+                        <div>
+                             <div class="flex justify-between mb-2 items-center border-b border-neonPurple/20 pb-2">
+                                <h2 class="text-sm font-bold text-neonPurple flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4"></i> AKAN DATANG HARI INI</h2>
+                            </div>
+                            <div class="space-y-0 opacity-80">${tUpcoming.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
+                        </div>` : ''}
 
                         <div class="flex items-center justify-center opacity-20 py-2"><div class="h-px bg-white w-full"></div><div class="mx-4 text-[9px] font-mono text-white whitespace-nowrap">NEXT CYCLE</div><div class="h-px bg-white w-full"></div></div>
 
+                        <!-- SECTION: PERENCANAAN BESOK -->
                         <div>
                             <h2 class="text-sm font-bold text-white mb-4 flex items-center gap-2"><i data-lucide="sunrise" class="w-4 h-4 text-neonGold"></i> PERENCANAAN BESOK</h2>
                             <div class="glass-card p-5 rounded-xl space-y-4 mb-4">
@@ -802,7 +877,21 @@
                         const d = new Date(); d.setMonth(d.getMonth()-i);
                         const k = Utils.getISO(d).slice(0,7);
                         const r = Engine.calcRank(k, tasks);
-                        hHtml += `<div class="glass-card p-4 rounded-xl flex items-center justify-between mb-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24">${Utils.formatMonth(k)}</span><div class="flex gap-4"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonCyan"></span><span class="font-display text-white ${r.exec.tier.class}">${r.exec.tier.code}</span></div><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-neonPurple"></span><span class="font-display text-white ${r.cons.tier.class}">${r.cons.tier.code}</span></div></div></div>`;
+                        hHtml += `
+                        <div class="glass-card px-4 py-3 rounded-xl flex items-center justify-between mb-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${Utils.formatMonth(k)}</span>
+                            <div class="flex gap-4">
+                                <div class="flex items-center gap-2" title="Execution Rank">
+                                    <span class="text-[8px] font-mono text-slate-600">EXEC</span>
+                                    <span class="font-display text-base ${r.exec.tier.class}">${r.exec.tier.code}</span>
+                                </div>
+                                <div class="w-px h-4 bg-white/5"></div>
+                                <div class="flex items-center gap-2" title="Consistency Rank">
+                                    <span class="text-[8px] font-mono text-slate-600">CONS</span>
+                                    <span class="font-display text-base ${r.cons.tier.class}">${r.cons.tier.code}</span>
+                                </div>
+                            </div>
+                        </div>`;
                     }
                     main.innerHTML = `
                     <div class="space-y-8 animate-[fadeIn_0.4s_ease-out] pt-4">
@@ -816,11 +905,53 @@
                     const { mon } = Engine.calcPoints(tasks);
                     const active = rewards.filter(r => r.status === 'active');
                     const redeemed = rewards.filter(r => r.status === 'redeemed').sort((a,b)=>new Date(b.redeemedDate)-new Date(a.redeemedDate));
+                    
+                    // --- REWARD FORM LOGIC ---
+                    let rewardForm = '';
+                    if (this.state.rewardStep === 0) {
+                        rewardForm = `
+                        <div class="flex gap-2">
+                            <input id="rew-name" type="text" placeholder="Nama hadiah..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
+                            <button onclick="App.controller.initReward()" class="bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian px-5 rounded-lg font-bold transition-all shadow-lg"><i data-lucide="arrow-right" class="w-5 h-5"></i></button>
+                        </div>`;
+                    } else if (this.state.rewardStep === 1) {
+                        rewardForm = `
+                        <div class="text-center py-2 animate-[fadeIn_0.3s]">
+                            <p class="text-white text-xs font-bold mb-3">Apakah hadiah ini memiliki harga nominal (Rp)?</p>
+                            <div class="flex gap-3 justify-center">
+                                <button onclick="App.controller.setRewardHasPrice(false)" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-700 text-xs">Tidak</button>
+                                <button onclick="App.controller.setRewardHasPrice(true)" class="px-4 py-2 rounded-lg bg-neonPurple text-white hover:bg-neonPurple/80 shadow-lg text-xs font-bold">Ya, Ada</button>
+                            </div>
+                        </div>`;
+                    } else if (this.state.rewardStep === 2) {
+                        const showPriceInput = this.state.tempReward.hasPrice;
+                        rewardForm = `
+                        <div class="space-y-3 animate-[fadeIn_0.3s]">
+                            <div class="flex items-center justify-between text-xs text-slate-400 px-1"><span>Item: <strong class="text-white">${this.state.tempReward.name}</strong></span><button onclick="App.controller.resetRewardForm()" class="text-neonRed hover:underline">Batal</button></div>
+                            ${showPriceInput ? `<input id="rew-price" type="number" placeholder="Harga Nominal (Rp)..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none">` : ''}
+                            <div class="flex gap-2">
+                                <input id="rew-cost" type="number" placeholder="Target Poin (Contoh: 50)" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
+                                <button onclick="App.controller.saveReward()" class="bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian px-5 rounded-lg font-bold transition-all shadow-lg"><i data-lucide="check" class="w-5 h-5"></i></button>
+                            </div>
+                        </div>`;
+                    }
+
                     main.innerHTML = `
                     <div class="space-y-6 animate-[fadeIn_0.4s_ease-out] pt-4">
                         <div class="glass-card p-8 rounded-2xl text-center relative overflow-hidden"><div class="absolute inset-0 bg-gradient-to-br from-neonCyan/10 to-transparent"></div><p class="text-neonCyan mb-2 text-[10px] uppercase tracking-[0.3em] font-bold relative z-10">SALDO POIN</p><p class="text-6xl font-black text-white drop-shadow-[0_0_20px_rgba(6,182,212,0.5)] font-mono relative z-10">${Utils.formatCurrency(mon)}</p></div>
-                        <div class="space-y-2"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonCyan">Target Baru</h3><div class="glass-card p-4 rounded-xl space-y-3"><input id="rew-n" type="text" placeholder="Nama hadiah..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><div class="flex gap-2"><input id="rew-c" type="number" placeholder="Harga" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none"><button onclick="App.controller.addReward()" class="bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian px-5 rounded-lg font-bold transition-all shadow-lg"><i data-lucide="plus" class="w-5 h-5"></i></button></div></div></div>
-                        <div class="space-y-3"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonPurple">Wishlist</h3>${active.length===0?'<div class="text-center py-8 text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">KOSONG</div>':active.map(r=>{const p=Math.min((mon/r.cost)*100,100); const col=mon>=r.cost?'bg-neonGreen':'bg-gradient-to-r from-neonCyan to-neonPurple'; return `<div class="glass-card p-4 rounded-xl relative overflow-hidden group"><div class="absolute bottom-0 left-0 h-1 ${col} transition-all duration-1000 shadow-[0_0_10px_currentColor]" style="width:${p}%"></div><div class="flex justify-between items-center relative z-10"><div><p class="text-white text-sm font-bold group-hover:text-neonCyan transition-colors">${r.name}</p><p class="text-[10px] text-slate-400 mt-1 font-mono tracking-wide">${Utils.formatCurrency(mon)} / <span class="text-white">${Utils.formatCurrency(r.cost)}</span></p></div><button onclick="App.controller.delReward('${r.id}')" class="text-slate-600 hover:text-neonRed transition-colors p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`}).join('')}</div>
+                        <div class="space-y-2"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonCyan">Target Baru</h3><div class="glass-card p-4 rounded-xl space-y-3">${rewardForm}</div></div>
+                        <div class="space-y-3"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonPurple">Wishlist</h3>${active.length===0?'<div class="text-center py-8 text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">KOSONG</div>':active.map(r=>{const p=Math.min((mon/r.cost)*100,100); const col=mon>=r.cost?'bg-neonGreen':'bg-gradient-to-r from-neonCyan to-neonPurple'; return `
+                        <div class="glass-card p-4 rounded-xl relative overflow-hidden group">
+                            <div class="absolute bottom-0 left-0 h-1 ${col} transition-all duration-1000 shadow-[0_0_10px_currentColor]" style="width:${p}%"></div>
+                            <div class="flex justify-between items-center relative z-10">
+                                <div>
+                                    <p class="text-white text-sm font-bold group-hover:text-neonCyan transition-colors">${r.name}</p>
+                                    ${r.price ? `<p class="text-[10px] text-neonGold font-mono mb-0.5">Rp ${Utils.formatCurrency(r.price)}</p>` : ''}
+                                    <p class="text-[10px] text-slate-400 mt-0.5 font-mono tracking-wide">Progress: ${Utils.formatCurrency(mon)} / <span class="text-white">${Utils.formatCurrency(r.cost)} PTS</span></p>
+                                </div>
+                                <button onclick="App.controller.delReward('${r.id}')" class="text-slate-600 hover:text-neonRed transition-colors p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>`}).join('')}</div>
                         <div class="pt-4 border-t border-white/5 space-y-3"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2 border-l-2 border-slate-600">Riwayat Klaim</h3>${redeemed.length===0?'<div class="text-center py-4 text-xs text-slate-700">Belum ada.</div>':redeemed.map(r=>`<div class="glass-card p-3 rounded-lg flex items-center justify-between opacity-70"><div><p class="text-white text-xs font-bold">${r.name}</p><p class="text-[9px] text-slate-500">${Utils.formatDate(r.redeemedDate)}</p></div><div class="text-neonGreen text-[10px] font-mono flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> TUKAR</div></div>`).join('')}</div>
                     </div>`;
                 }
@@ -847,8 +978,16 @@
                         grid+=`<button onclick="App.controller.setDate('${d}')" class="cal-cell ${sd===d?'active':''} aspect-square rounded-lg flex items-center justify-center text-xs border ${br} ${bg} transition-all hover:scale-105 active:scale-95">${new Date(d).getDate()}</button>`;
                     });
 
+                    // Update History Header to show Today's Date prominently
                     main.innerHTML = `
                     <div class="h-full flex flex-col pt-2 animate-[fadeIn_0.4s_ease-out]">
+                        <div class="text-center mb-4">
+                            <div class="inline-block px-4 py-1 rounded-full bg-slate-800/50 border border-slate-700">
+                                <p class="text-[10px] text-slate-400 uppercase tracking-widest">HARI INI</p>
+                                <p class="text-neonCyan font-bold text-sm">${Utils.formatDate(today)}</p>
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-between glass-card p-2 rounded-xl mb-4"><button onclick="App.controller.navMonth(-1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-left" class="w-5 h-5"></i></button><span class="text-white font-black text-sm tracking-[0.2em]">${Utils.formatMonth(this.state.histMonth)}</span><button onclick="App.controller.navMonth(1)" class="p-2 hover:bg-white/10 rounded-lg text-slate-400"><i data-lucide="chevron-right" class="w-5 h-5"></i></button></div>
                         <div class="grid grid-cols-7 gap-1 text-center mb-2">${['SEN','SEL','RAB','KAM','JUM','SAB','MIN'].map(d=>`<div class="text-[8px] font-bold text-slate-500 tracking-wider">${d}</div>`).join('')}</div>
                         <div class="grid grid-cols-7 gap-1.5 mb-6">${grid}</div>
