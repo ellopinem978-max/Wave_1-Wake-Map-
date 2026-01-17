@@ -254,7 +254,17 @@
                 easy: { id: 'easy', label: 'Mudah', pts: 2, color: 'text-neonGreen', border: 'border-neonGreen', hex: '#10b981' },
                 medium: { id: 'medium', label: 'Sedang', pts: 4, color: 'text-neonCyan', border: 'border-neonCyan', hex: '#06b6d4' },
                 hard: { id: 'hard', label: 'Sulit', pts: 6, color: 'text-neonPurple', border: 'border-neonPurple', hex: '#8b5cf6' }
-            }
+            },
+
+            // Productivity Modes (NEW)
+            PRODUCTIVITY_MODES: [
+                { id: 'hibernasi', label: 'Hibernasi', pts: 8, desc: 'Recovery Mode', icon: 'battery-charging', color: 'text-slate-400' },
+                { id: 'inisiasi', label: 'Inisiasi', pts: 16, desc: 'Starter', icon: 'sprout', color: 'text-neonGreen' },
+                { id: 'standar', label: 'Standar', pts: 24, desc: 'Balanced', icon: 'scale', color: 'text-neonCyan' },
+                { id: 'akselerasi', label: 'Akselerasi', pts: 36, desc: 'High Perf', icon: 'zap', color: 'text-neonPurple' },
+                { id: 'dominasi', label: 'Dominasi', pts: 50, desc: 'Elite', icon: 'flame', color: 'text-neonRed' },
+                { id: 'god', label: 'God Tier', pts: 70, desc: 'Limitless', icon: 'crown', color: 'text-neonGold' }
+            ]
         };
 
         /**
@@ -626,6 +636,8 @@
                 tempTask: null,
                 rewardStep: 0, 
                 tempReward: { name: '', hasPrice: false, price: 0, cost: 0, recs: null },
+                showIncomeInput: false,
+                tempMode: null
             },
 
             init() {
@@ -754,21 +766,29 @@
             },
 
             // --- FINANCE & REWARD ACTIONS ---
+            selectMode(id) {
+                this.state.tempMode = id;
+                this.sound.play('click');
+                this.render();
+            },
+
             saveMonthlyConfig() {
                 const incomeIn = document.getElementById('income-in').value;
-                const targetIn = document.getElementById('target-in').value;
+                const modeId = this.state.tempMode;
                 
                 if(!incomeIn || incomeIn <= 0) { this.toast('Nominal gaji tidak valid', 'error'); return; }
-                if(!targetIn || targetIn <= 0) { this.toast('Target poin tidak valid', 'error'); return; }
+                if(!modeId) { this.toast('Pilih mode operasi', 'error'); return; }
                 
+                const mode = Config.PRODUCTIVITY_MODES.find(m => m.id === modeId);
                 const finance = Store.get('finance'); 
                 const monthKey = Utils.getMonthKey(Utils.getISO());
                 const newFinance = finance.filter(f => f.month !== monthKey);
-                newFinance.push({ month: monthKey, amount: parseInt(incomeIn), targetPts: parseInt(targetIn) });
+                newFinance.push({ month: monthKey, amount: parseInt(incomeIn), targetPts: mode.pts, modeId: modeId });
                 
                 Store.set('finance', newFinance);
                 this.sound.play('success'); // AUDIO
-                this.toast('Protokol bulan ini dikalibrasi!', 'success');
+                this.toast(`Protokol: ${mode.label.toUpperCase()} diaktifkan!`, 'success');
+                this.state.tempMode = null;
                 this.render();
             },
 
@@ -793,7 +813,6 @@
                 const priceIn = document.getElementById('rew-price').value;
                 if (!priceIn || priceIn <= 0) {
                     this.state.tempReward.recs = null;
-                    // Don't re-render whole UI to keep focus
                     const c = document.getElementById('rec-container');
                     if(c) c.innerHTML = '';
                     return;
@@ -1101,23 +1120,42 @@
                     // --- FINANCE SETUP CARD (HOME) ---
                     let financeCard = '';
                     if (!myFinance) {
+                        const selectedModeId = this.state.tempMode;
                         financeCard = `
                         <div class="glass-card p-5 rounded-xl border border-neonGold/30 bg-neonGold/5 mb-4 animate-[pulse-slow]">
                             <div class="flex items-center gap-2 mb-3">
                                 <i data-lucide="settings-2" class="w-5 h-5 text-neonGold"></i>
                                 <h3 class="text-sm font-bold text-white">Kalibrasi Protokol Bulan Ini</h3>
                             </div>
-                            <p class="text-xs text-slate-400 mb-3 leading-relaxed">Agar kalkulasi nilai poin & rank akurat, masukkan parameter finansial & produktivitas Anda.</p>
-                            <div class="space-y-2">
+                            <p class="text-xs text-slate-400 mb-3 leading-relaxed">Agar kalkulasi nilai poin & rank akurat, masukkan parameter finansial & pilih mode operasi Anda.</p>
+                            <div class="space-y-4">
                                 <div>
-                                    <label class="text-[9px] text-slate-500 uppercase font-bold">Anggaran/Gaji (Rp)</label>
-                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" class="w-full bg-obsidian text-white rounded-lg px-3 py-2 text-sm border border-slate-700 focus:border-neonGold outline-none">
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold mb-1 block">Anggaran/Gaji (Rp)</label>
+                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
                                 </div>
                                 <div>
-                                    <label class="text-[9px] text-slate-500 uppercase font-bold">Target Poin Harian</label>
-                                    <input id="target-in" type="number" placeholder="Contoh: 15" class="w-full bg-obsidian text-white rounded-lg px-3 py-2 text-sm border border-slate-700 focus:border-neonGold outline-none">
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold mb-2 block">Pilih Mode Operasi</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        ${Config.PRODUCTIVITY_MODES.map(m => {
+                                            const isSel = selectedModeId === m.id;
+                                            const border = isSel ? `border-${m.color.split('-')[1]}` : 'border-slate-700';
+                                            const bg = isSel ? 'bg-slate-700' : 'bg-slate-800';
+                                            return `
+                                            <button onclick="App.controller.selectMode('${m.id}')" class="${bg} border ${border} hover:bg-slate-700 p-2 rounded-lg text-left transition-all active:scale-95 group relative overflow-hidden">
+                                                ${isSel ? `<div class="absolute inset-0 bg-white/5"></div>` : ''}
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <i data-lucide="${m.icon}" class="w-3 h-3 ${m.color}"></i>
+                                                    <span class="text-xs font-bold text-white">${m.label}</span>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-[9px] text-slate-400">${m.desc}</span>
+                                                    <span class="text-[10px] font-mono font-bold ${m.color}">${m.pts} Pts</span>
+                                                </div>
+                                            </button>`;
+                                        }).join('')}
+                                    </div>
                                 </div>
-                                <button onclick="App.controller.saveMonthlyConfig()" class="w-full bg-neonGold text-obsidian px-4 py-2 rounded-lg font-bold hover:bg-white transition-colors mt-2">Simpan Parameter</button>
+                                <button onclick="App.controller.saveMonthlyConfig()" class="w-full bg-neonGold text-obsidian px-4 py-3 rounded-lg font-bold hover:bg-white transition-colors shadow-lg mt-2 flex justify-center items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i> Simpan Parameter</button>
                             </div>
                         </div>`;
                     }
@@ -1259,16 +1297,42 @@
                     
                     let financeSection = '';
                     if (!myFinance) {
+                        const selectedModeId = this.state.tempMode;
                         financeSection = `
-                        <div class="glass-card p-5 rounded-xl border border-neonGold/30 bg-neonGold/5 mb-4 animate-[fadeIn_0.4s]">
+                        <div class="glass-card p-5 rounded-xl border border-neonGold/30 bg-neonGold/5 mb-4 animate-[pulse-slow]">
                             <div class="flex items-center gap-2 mb-3">
-                                <i data-lucide="coins" class="w-5 h-5 text-neonGold"></i>
-                                <h3 class="text-sm font-bold text-white">Setup Keuangan Bulan Ini</h3>
+                                <i data-lucide="settings-2" class="w-5 h-5 text-neonGold"></i>
+                                <h3 class="text-sm font-bold text-white">Kalibrasi Protokol Bulan Ini</h3>
                             </div>
-                            <p class="text-xs text-slate-400 mb-3 leading-relaxed">Masukkan anggaran/gaji Anda bulan ini untuk mengaktifkan kalkulator target hadiah cerdas.</p>
-                            <div class="flex gap-2">
-                                <input id="income-in" type="number" placeholder="Contoh: 1800000" class="flex-1 bg-obsidian text-white rounded-lg px-4 py-2 text-sm border border-slate-700 focus:border-neonGold outline-none">
-                                <button onclick="App.controller.saveMonthlyIncome()" class="bg-neonGold text-obsidian px-4 rounded-lg font-bold hover:bg-white transition-colors">Simpan</button>
+                            <p class="text-xs text-slate-400 mb-3 leading-relaxed">Agar kalkulasi nilai poin & rank akurat, masukkan parameter finansial & pilih mode operasi Anda.</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold mb-1 block">Anggaran/Gaji (Rp)</label>
+                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" class="w-full bg-obsidian text-white rounded-lg px-3 py-2.5 text-sm border border-slate-700 focus:border-neonGold outline-none transition-colors">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold mb-2 block">Pilih Mode Operasi</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        ${Config.PRODUCTIVITY_MODES.map(m => {
+                                            const isSel = selectedModeId === m.id;
+                                            const border = isSel ? `border-${m.color.split('-')[1]}` : 'border-slate-700';
+                                            const bg = isSel ? 'bg-slate-700' : 'bg-slate-800';
+                                            return `
+                                            <button onclick="App.controller.selectMode('${m.id}')" class="${bg} border ${border} hover:bg-slate-700 p-2 rounded-lg text-left transition-all active:scale-95 group relative overflow-hidden">
+                                                ${isSel ? `<div class="absolute inset-0 bg-white/5"></div>` : ''}
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <i data-lucide="${m.icon}" class="w-3 h-3 ${m.color}"></i>
+                                                    <span class="text-xs font-bold text-white">${m.label}</span>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-[9px] text-slate-400">${m.desc}</span>
+                                                    <span class="text-[10px] font-mono font-bold ${m.color}">${m.pts} Pts</span>
+                                                </div>
+                                            </button>`;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                                <button onclick="App.controller.saveMonthlyConfig()" class="w-full bg-neonGold text-obsidian px-4 py-3 rounded-lg font-bold hover:bg-white transition-colors shadow-lg mt-2 flex justify-center items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i> Simpan Parameter</button>
                             </div>
                         </div>`;
                     } else {
@@ -1276,10 +1340,11 @@
                         const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
                         const dailyIncome = myFinance.amount / daysInMonth;
                         const valPerPoint = Math.max(1, Math.round(dailyIncome / (myFinance.targetPts || 10)));
+                        const mode = Config.PRODUCTIVITY_MODES.find(m => m.id === myFinance.modeId) || { label: 'Custom', color: 'text-white' };
                         
                         financeSection = `
                         <div class="mb-4 flex justify-between items-center text-[10px] text-slate-500 font-mono border-b border-white/5 pb-2">
-                            <span>BUDGET: Rp ${Utils.formatCurrency(myFinance.amount)}</span>
+                            <span>MODE: <span class="${mode.color} font-bold">${mode.label.toUpperCase()}</span></span>
                             <span>1 PTS ≈ Rp ${Utils.formatCurrency(valPerPoint)}</span>
                         </div>`;
                     }
