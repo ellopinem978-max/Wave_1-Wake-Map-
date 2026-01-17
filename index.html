@@ -312,7 +312,8 @@
          */
         class Engine {
             static calcPoints(tasks) {
-                const today = Utils.getISO();
+                const dObj = new Date();
+                const today = Utils.getISO(dObj);
                 const monthKey = today.slice(0, 7);
                 const d = new Date(); d.setMonth(d.getMonth() - 1);
                 const prevMonthKey = Utils.getISO(d).slice(0,7);
@@ -326,13 +327,23 @@
                         if (t.date.startsWith(prevMonthKey)) last += pts;
                     }
                 });
-                return { cur, mon, last };
+
+                // Calculate Average Daily Points for Current Month
+                const dayNum = dObj.getDate();
+                // Avoid division by zero if it's the very start of the day on 1st? No, getDate returns 1-31.
+                const avg = dayNum > 0 ? (mon / dayNum).toFixed(1) : '0.0';
+
+                return { cur, mon, last, avg };
             }
             
-            static calcRank(monthKey, tasks) {
+            static calcRank(monthKey, tasks, financeData) {
                 let eTier=0, eBar=0, cTier=0, cBar=0;
                 const mTasks = tasks.filter(t => t.date.startsWith(monthKey));
                 
+                // Get monthly config
+                const config = financeData.find(f => f.month === monthKey);
+                const dailyTarget = config ? config.targetPts : 10; // Default fallback
+
                 // CRITICAL FIX: Ensure dates include today if there are tasks today
                 const dates = [...new Set(mTasks.map(t => t.date))].sort();
                 const today = Utils.getISO();
@@ -343,29 +354,30 @@
                     const done = ts.filter(t => t.status === 'completed').length;
                     const total = ts.length;
                     const failed = ts.some(t => t.status === 'failed');
+                    
+                    // Calc total points for the day
+                    const dayPoints = ts.reduce((acc, t) => acc + (t.status === 'completed' ? Config.DIFFICULTY[t.difficulty].pts : 0), 0);
 
-                    // EXECUTION Logic
-                    // Win: All tasks done.
-                    // Lose: Failed task OR (Not all done AND NOT Today).
-                    // If it is today and we haven't finished all, we don't lose yet.
+                    // EXECUTION Logic (Completion Rate)
                     let eWin = (done === total && total > 0);
                     let eLose = (failed || (done < total && !isToday));
                     
                     if(eWin) { eBar++; if(eBar>2) { if(eTier<14){eTier++; eBar=1;} else eBar=2; } }
                     else if(eLose) { eBar--; if(eBar<0) { if(eTier>0){eTier--; eBar=1;} else eBar=0; } }
                     
-                    // CONSISTENCY Logic
-                    // Win: At least 1 task done.
-                    // Lose: 0 done AND NOT Today.
-                    let cWin = (done >= 1);
-                    let cLose = (done === 0 && !isToday);
+                    // CONSISTENCY Logic (Points Target) - CHANGED LOGIC HERE
+                    // Win: Reached daily points target
+                    // Lose: Failed to reach target (only finalized if day is over)
+                    let cWin = (dayPoints >= dailyTarget);
+                    let cLose = (dayPoints < dailyTarget && !isToday);
 
                     if(cWin) { cBar++; if(cBar>2) { if(cTier<14){cTier++; cBar=1;} else cBar=2; } }
                     else if(cLose) { cBar--; if(cBar<0) { if(cTier>0){cTier--; cBar=1;} else cBar=0; } }
                 });
                 return { 
                     exec: { tier: Config.TIERS[eTier], bars: eBar }, 
-                    cons: { tier: Config.TIERS[cTier], bars: cBar } 
+                    cons: { tier: Config.TIERS[cTier], bars: cBar },
+                    dailyTarget: dailyTarget
                 };
             }
 
@@ -546,7 +558,9 @@
                 tempTask: null,
                 // New state for multi-step reward form
                 rewardStep: 0, 
-                tempReward: { name: '', hasPrice: false, price: 0, cost: 0 }
+                tempReward: { name: '', hasPrice: false, price: 0, cost: 0, recs: null },
+                // Finance state
+                showIncomeInput: false
             },
 
             init() {
@@ -659,12 +673,32 @@
                 }
             },
 
-            // --- REWARD SYSTEM ACTIONS ---
+            // --- FINANCE & REWARD ACTIONS ---
+            
+            saveMonthlyConfig() {
+                const incomeIn = document.getElementById('income-in').value;
+                const targetIn = document.getElementById('target-in').value;
+                
+                if(!incomeIn || incomeIn <= 0) { this.toast('Nominal gaji tidak valid', 'error'); return; }
+                if(!targetIn || targetIn <= 0) { this.toast('Target poin tidak valid', 'error'); return; }
+                
+                const finance = Store.get('finance'); // Array of { month: 'YYYY-MM', amount: 5000000, targetPts: 20 }
+                const monthKey = Utils.getMonthKey(Utils.getISO());
+                
+                // Remove existing if any
+                const newFinance = finance.filter(f => f.month !== monthKey);
+                newFinance.push({ month: monthKey, amount: parseInt(incomeIn), targetPts: parseInt(targetIn) });
+                
+                Store.set('finance', newFinance);
+                this.toast('Protokol bulan ini dikalibrasi!', 'success');
+                this.render();
+            },
+
             initReward() {
                 const nameIn = document.getElementById('rew-name').value.trim();
                 if(!nameIn) { this.toast('Nama hadiah wajib diisi', 'error'); return; }
                 
-                this.state.tempReward = { name: nameIn, hasPrice: false, price: 0, cost: 0 };
+                this.state.tempReward = { name: nameIn, hasPrice: false, price: 0, cost: 0, recs: null };
                 this.state.rewardStep = 1;
                 this.render();
             },
@@ -675,9 +709,60 @@
                 this.render();
             },
 
+            calcRewardRecs() {
+                const priceIn = document.getElementById('rew-price').value;
+                if (!priceIn || priceIn <= 0) {
+                    this.state.tempReward.recs = null;
+                    this.render();
+                    return;
+                }
+
+                const financeData = Store.get('finance');
+                const curMonthKey = Utils.getMonthKey(Utils.getISO());
+                const myFinance = financeData.find(f => f.month === curMonthKey);
+
+                if (myFinance) {
+                    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+                    const dailyIncome = myFinance.amount / daysInMonth;
+                    // USE CUSTOM DAILY TARGET, Default 10 if somehow missing
+                    const dailyTarget = myFinance.targetPts || 10;
+                    
+                    const valPerPoint = Math.max(1, Math.round(dailyIncome / dailyTarget)); 
+                    const price = parseInt(priceIn);
+                    
+                    const normalPts = Math.ceil(price / valPerPoint);
+                    const hardPts = Math.ceil(normalPts * 1.5); // 1.5x Multiplier for "Hard/Saving" mode
+
+                    this.state.tempReward.recs = { normal: normalPts, hard: hardPts };
+                    
+                    const recContainer = document.getElementById('rec-container');
+                    if (recContainer) {
+                        recContainer.innerHTML = `
+                        <div class="flex gap-2 mt-2 animate-[fadeIn_0.3s]">
+                            <button onclick="App.controller.applyRec(${normalPts})" class="flex-1 bg-slate-800 border border-slate-600 hover:border-neonCyan p-2 rounded-lg text-center transition-all group active:scale-95">
+                                <span class="block text-[9px] text-slate-400 uppercase group-hover:text-white">Normal (Fair)</span>
+                                <span class="block text-neonCyan font-bold font-mono text-sm">${normalPts} Pts</span>
+                            </button>
+                            <button onclick="App.controller.applyRec(${hardPts})" class="flex-1 bg-slate-800 border border-slate-600 hover:border-neonPurple p-2 rounded-lg text-center transition-all group active:scale-95">
+                                <span class="block text-[9px] text-slate-400 uppercase group-hover:text-white">Sulit (Hemat)</span>
+                                <span class="block text-neonPurple font-bold font-mono text-sm">${hardPts} Pts</span>
+                            </button>
+                        </div>`;
+                    }
+                } else {
+                     const recContainer = document.getElementById('rec-container');
+                     if(recContainer) recContainer.innerHTML = `<p class="text-[10px] text-neonRed text-center mt-2">Belum ada data keuangan bulan ini. Cek Menu PETA.</p>`;
+                }
+            },
+
+            applyRec(pts) {
+                const costInput = document.getElementById('rew-cost');
+                if (costInput) costInput.value = pts;
+            },
+
             resetRewardForm() {
                 this.state.rewardStep = 0;
-                this.state.tempReward = { name: '', hasPrice: false, price: 0, cost: 0 };
+                this.state.tempReward = { name: '', hasPrice: false, price: 0, cost: 0, recs: null };
                 this.render();
             },
 
@@ -769,11 +854,15 @@
                 const tasks = Store.get('tasks');
                 const rewards = Store.get('rewards');
                 const reflections = Store.get('reflections');
+                const financeData = Store.get('finance'); // Array of monthly finance
                 
                 const today = Utils.getISO();
                 const monthKey = Utils.getISO().slice(0, 7);
                 const currentSlot = Utils.getCurrentSlot();
                 const currentHour = new Date().getHours();
+                
+                // Get Current Month Config
+                const myFinance = financeData.find(f => f.month === monthKey);
                 
                 // Update Common Elements
                 document.getElementById('header-month').innerText = Utils.formatMonth(monthKey);
@@ -788,32 +877,24 @@
 
                 const main = document.getElementById('app-viewport');
                 
+                // CALCULATE STATS GLOBAL (Used in Home & Logs)
+                const pts = Engine.calcPoints(tasks);
+
                 if (this.state.view === 'home') {
-                    const pts = Engine.calcPoints(tasks);
-                    const rnk = Engine.calcRank(monthKey, tasks);
+                    const rnk = Engine.calcRank(monthKey, tasks, financeData);
                     const ref = reflections.find(r => r.date === today);
                     
                     // --- LOGIC FILTER BARU ---
-                    
-                    // 1. Misi Gagal Hari Ini (Failed)
                     const tFailed = tasks.filter(t => t.date === today && t.status === 'failed');
-
-                    // 2. Misi Selesai Hari Ini (Completed) - NEW
                     const tCompleted = tasks.filter(t => t.date === today && t.status === 'completed');
-
-                    // 3. Misi Aktif Sekarang (Active)
                     const tActive = tasks.filter(t => {
                         return t.date === today && t.status === 'pending' && (t.timeSlot === currentSlot.id || t.timeSlot === 'all');
                     });
-
-                    // 4. Misi Akan Datang (Upcoming)
                     const tUpcoming = tasks.filter(t => {
                         if (t.date !== today || t.status !== 'pending') return false;
                         const slot = Config.TIME_SLOTS.find(s => s.id === t.timeSlot);
                         return slot && slot.id !== 'all' && slot.start > currentHour; 
                     });
-
-                    // 5. Perencanaan Besok (Tomorrow)
                     const tTom = tasks.filter(t => t.date === Utils.getTomorrow());
 
                     const diffBtn = (d) => {
@@ -822,25 +903,72 @@
                         return `<button onclick="App.controller.setDifficulty('${d}')" class="flex-1 py-2 rounded-lg text-[10px] font-bold border uppercase transition-all ${act ? `bg-white/10 text-white shadow-[0_0_10px_currentColor] ${c.border}` : 'border-slate-700 text-slate-500'}" style="${act?`color:${c.hex}`:''}">${c.label}</button>`;
                     };
 
+                    // --- FINANCE SETUP CARD (HOME) ---
+                    let financeCard = '';
+                    if (!myFinance) {
+                        financeCard = `
+                        <div class="glass-card p-5 rounded-xl border border-neonGold/30 bg-neonGold/5 mb-4 animate-[pulse-slow]">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i data-lucide="settings-2" class="w-5 h-5 text-neonGold"></i>
+                                <h3 class="text-sm font-bold text-white">Kalibrasi Protokol Bulan Ini</h3>
+                            </div>
+                            <p class="text-xs text-slate-400 mb-3 leading-relaxed">Agar kalkulasi nilai poin & rank akurat, masukkan parameter finansial & produktivitas Anda.</p>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold">Anggaran/Gaji (Rp)</label>
+                                    <input id="income-in" type="number" placeholder="Contoh: 1800000" class="w-full bg-obsidian text-white rounded-lg px-3 py-2 text-sm border border-slate-700 focus:border-neonGold outline-none">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-slate-500 uppercase font-bold">Target Poin Harian</label>
+                                    <input id="target-in" type="number" placeholder="Contoh: 15" class="w-full bg-obsidian text-white rounded-lg px-3 py-2 text-sm border border-slate-700 focus:border-neonGold outline-none">
+                                </div>
+                                <button onclick="App.controller.saveMonthlyConfig()" class="w-full bg-neonGold text-obsidian px-4 py-2 rounded-lg font-bold hover:bg-white transition-colors mt-2">Simpan Parameter</button>
+                            </div>
+                        </div>`;
+                    }
+
                     main.innerHTML = `
                     <div class="space-y-8 pb-10 animate-[fadeIn_0.4s_ease-out]">
+                        
+                        ${financeCard}
+
                         <div class="flex gap-4">${ComponentFactory.rankCard('EXECUTION', rnk.exec, 'swords')}${ComponentFactory.rankCard('CONSISTENCY', rnk.cons, 'zap')}</div>
                         
+                        <!-- Poin Hari Ini -->
                         <div class="glass-card p-5 rounded-xl flex items-center justify-between relative overflow-hidden">
                             <div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-neonCyan/10 to-transparent"></div>
-                            <div class="relative z-10"><div class="text-[9px] text-neonCyan font-bold uppercase tracking-widest mb-1">Poin Hari Ini</div><div class="text-4xl font-mono font-bold text-white drop-shadow-md">${pts.cur} <span class="text-xs text-slate-500 font-sans font-normal">PTS</span></div></div>
+                            <div class="relative z-10"><div class="text-[9px] text-neonCyan font-bold uppercase tracking-widest mb-1">Poin Hari Ini</div><div class="text-4xl font-mono font-bold text-white drop-shadow-md">${pts.cur} <span class="text-xs text-slate-500 font-sans font-normal">/ ${myFinance ? myFinance.targetPts : '-'} PTS</span></div></div>
                             <div class="relative z-10 w-12 h-12 rounded-full bg-slate border border-white/10 flex items-center justify-center"><i data-lucide="activity" class="text-neonCyan w-6 h-6"></i></div>
                         </div>
 
+                        <!-- Rata-rata Harian (New) -->
+                        <div class="glass-card p-3 rounded-xl flex items-center justify-between border-l-2 border-neonPurple bg-white/5">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 rounded-lg bg-neonPurple/10"><i data-lucide="trending-up" class="w-4 h-4 text-neonPurple"></i></div>
+                                <div>
+                                    <p class="text-[9px] text-neonPurple font-bold uppercase tracking-widest">Rata-rata Harian</p>
+                                    <p class="text-[8px] text-slate-400 font-mono">Performa Bulan Ini</p>
+                                </div>
+                            </div>
+                            <div class="text-xl font-mono font-bold text-white tracking-wide">${pts.avg} <span class="text-[9px] text-slate-500 font-sans font-normal">PTS</span></div>
+                        </div>
+
+                        <!-- Stats Bulanan Grid (2 Columns) -->
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="glass-card p-4 flex flex-col items-center border-l-2 border-slate-600"><span class="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Bulan Lalu</span><span class="text-xl font-mono font-bold text-slate-200">${pts.last}</span></div>
-                            <div class="glass-card p-4 flex flex-col items-center border-l-2 border-neonCyan"><span class="text-[8px] text-neonCyan uppercase tracking-widest mb-1">Bulan Ini</span><span class="text-xl font-mono font-bold text-white">${pts.mon}</span></div>
+                            <div class="glass-card p-4 flex flex-col items-center border-t-2 border-slate-600">
+                                <span class="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Bulan Lalu</span>
+                                <span class="text-xl font-mono font-bold text-slate-300">${pts.last}</span>
+                            </div>
+                            <div class="glass-card p-4 flex flex-col items-center border-t-2 border-neonCyan">
+                                <span class="text-[8px] text-neonCyan uppercase tracking-widest mb-1">Bulan Ini</span>
+                                <span class="text-xl font-mono font-bold text-white">${pts.mon}</span>
+                            </div>
                         </div>
 
                         ${ref ? `<div class="glass-card p-5 rounded-xl border-l-4 border-l-neonPurple"><div class="flex items-center gap-2 mb-2 text-neonPurple"><i data-lucide="brain-circuit" class="w-4 h-4"></i><span class="text-[10px] font-bold uppercase tracking-widest">LOG REFLEKSI</span></div><p class="text-sm text-slate-200 italic">"${ref.text}"</p></div>` : 
                         `<div class="p-5 rounded-xl border border-dashed border-slate-700 bg-slate/20"><label class="block text-slate-400 text-[10px] font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><i data-lucide="edit-3" class="w-3 h-3"></i> Refleksi Wajib</label><div class="flex gap-2"><input id="ref-in" type="text" placeholder="Apa yang dipelajari?" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none"><button onclick="App.controller.saveRef()" class="bg-neonPurple text-white px-4 rounded-lg shadow-lg"><i data-lucide="save" class="w-4 h-4"></i></button></div></div>`}
 
-                        <!-- SECTION: MISI GAGAL (Hanya muncul jika ada) -->
+                        <!-- SECTION: MISI GAGAL -->
                         ${tFailed.length > 0 ? `
                         <div>
                              <div class="flex justify-between mb-2 items-center border-b border-neonRed/20 pb-2">
@@ -849,7 +977,7 @@
                             <div class="space-y-0">${tFailed.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
                         </div>` : ''}
 
-                         <!-- SECTION: MISI SELESAI (NEW) -->
+                         <!-- SECTION: MISI SELESAI -->
                         ${tCompleted.length > 0 ? `
                         <div>
                              <div class="flex justify-between mb-2 items-center border-b border-neonGreen/20 pb-2">
@@ -870,7 +998,7 @@
                             <div class="space-y-0">${tActive.length===0 ? '<div class="text-center py-8 text-xs text-slate-600 font-mono border border-dashed border-slate-800 rounded-xl">ISTIRAHAT / FASE KOSONG</div>' : tActive.map(t => ComponentFactory.taskItem(t, true)).join('')}</div>
                         </div>
 
-                        <!-- SECTION: MISI AKAN DATANG (Hanya muncul jika ada) -->
+                        <!-- SECTION: MISI AKAN DATANG -->
                         ${tUpcoming.length > 0 ? `
                         <div>
                              <div class="flex justify-between mb-2 items-center border-b border-neonPurple/20 pb-2">
@@ -894,12 +1022,12 @@
                     </div>`;
                 } 
                 else if (this.state.view === 'rank') {
-                    const rnk = Engine.calcRank(monthKey, tasks);
+                    const rnk = Engine.calcRank(monthKey, tasks, financeData);
                     let hHtml = '';
                     for(let i=1; i<=3; i++) {
                         const d = new Date(); d.setMonth(d.getMonth()-i);
                         const k = Utils.getISO(d).slice(0,7);
-                        const r = Engine.calcRank(k, tasks);
+                        const r = Engine.calcRank(k, tasks, financeData);
                         hHtml += `
                         <div class="glass-card px-4 py-3 rounded-xl flex items-center justify-between mb-2">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${Utils.formatMonth(k)}</span>
@@ -919,16 +1047,22 @@
                     main.innerHTML = `
                     <div class="space-y-8 animate-[fadeIn_0.4s_ease-out] pt-4">
                         <div class="text-center"><div class="inline-block px-6 py-2 rounded-full border border-neonCyan/30 bg-neonCyan/10 backdrop-blur-md mb-2"><h2 class="text-neonCyan font-black text-sm uppercase tracking-[0.2em] drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">${Utils.formatMonth(monthKey)}</h2></div><p class="text-[10px] text-slate-500 uppercase tracking-widest">Laporan Kinerja Bulanan</p></div>
-                        <div class="flex flex-col gap-4">${ComponentFactory.rankCard('EXECUTION RANK', rnk.exec, 'swords')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2 mb-2">SYARAT: SEMUA SELESAI (2x)</div>${ComponentFactory.rankCard('CONSISTENCY RANK', rnk.cons, 'zap')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2">SYARAT: MINIMAL 1 SELESAI (2x)</div></div>
+                        <div class="flex flex-col gap-4">${ComponentFactory.rankCard('EXECUTION RANK', rnk.exec, 'swords')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2 mb-2">SYARAT: SEMUA SELESAI (2x)</div>${ComponentFactory.rankCard('CONSISTENCY RANK', rnk.cons, 'zap')}<div class="text-center text-[9px] text-slate-500 font-mono -mt-2">SYARAT: CAPAI TARGET HARIAN (${rnk.dailyTarget} PTS)</div></div>
                         <div class="pt-4 border-t border-white/5"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="archive" class="w-3 h-3"></i> Arsip Bulanan</h3>${hHtml}</div>
                         <div class="pt-4 border-t border-white/5"><h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="list" class="w-3 h-3"></i> Codex Pangkat</h3><div class="bg-charcoal/50 p-2 rounded-xl border border-white/5 h-64 overflow-y-auto custom-scroll">${ComponentFactory.rankLegend()}</div></div>
                     </div>`;
                 }
                 else if (this.state.view === 'rewards') {
-                    const { mon } = Engine.calcPoints(tasks);
+                    // Uses pts calculated globally at start of render
+                    const { mon } = pts;
                     const active = rewards.filter(r => r.status === 'active');
                     const redeemed = rewards.filter(r => r.status === 'redeemed').sort((a,b)=>new Date(b.redeemedDate)-new Date(a.redeemedDate));
                     
+                    let financeInfo = '';
+                    if(!myFinance) {
+                        financeInfo = `<div class="p-3 bg-neonRed/10 border border-neonRed/30 rounded-lg text-center mb-4"><p class="text-xs text-neonRed font-bold">⚠️ Protokol belum dikalibrasi</p><p class="text-[10px] text-slate-400">Silakan isi data keuangan di menu PETA.</p></div>`;
+                    }
+
                     // --- REWARD FORM LOGIC ---
                     let rewardForm = '';
                     if (this.state.rewardStep === 0) {
@@ -951,7 +1085,11 @@
                         rewardForm = `
                         <div class="space-y-3 animate-[fadeIn_0.3s]">
                             <div class="flex items-center justify-between text-xs text-slate-400 px-1"><span>Item: <strong class="text-white">${this.state.tempReward.name}</strong></span><button onclick="App.controller.resetRewardForm()" class="text-neonRed hover:underline">Batal</button></div>
-                            ${showPriceInput ? `<input id="rew-price" type="number" placeholder="Harga Nominal (Rp)..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none">` : ''}
+                            ${showPriceInput ? `<input id="rew-price" type="number" onkeyup="App.controller.calcRewardRecs()" placeholder="Masukkan Harga (Rp)..." class="w-full bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonPurple outline-none">` : ''}
+                            
+                            <!-- Dynamic Recs Container -->
+                            <div id="rec-container"></div>
+
                             <div class="flex gap-2">
                                 <input id="rew-cost" type="number" placeholder="Target Poin (Contoh: 50)" class="flex-1 bg-charcoal text-white rounded-lg px-4 py-3 text-sm border border-slate-700 focus:border-neonCyan outline-none">
                                 <button onclick="App.controller.saveReward()" class="bg-neonCyan hover:bg-white hover:text-obsidian text-obsidian px-5 rounded-lg font-bold transition-all shadow-lg"><i data-lucide="check" class="w-5 h-5"></i></button>
@@ -962,6 +1100,9 @@
                     main.innerHTML = `
                     <div class="space-y-6 animate-[fadeIn_0.4s_ease-out] pt-4">
                         <div class="glass-card p-8 rounded-2xl text-center relative overflow-hidden"><div class="absolute inset-0 bg-gradient-to-br from-neonCyan/10 to-transparent"></div><p class="text-neonCyan mb-2 text-[10px] uppercase tracking-[0.3em] font-bold relative z-10">SALDO POIN</p><p class="text-6xl font-black text-white drop-shadow-[0_0_20px_rgba(6,182,212,0.5)] font-mono relative z-10">${Utils.formatCurrency(mon)}</p></div>
+                        
+                        ${financeInfo}
+
                         <div class="space-y-2"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonCyan">Target Baru</h3><div class="glass-card p-4 rounded-xl space-y-3">${rewardForm}</div></div>
                         <div class="space-y-3"><h3 class="text-xs font-bold text-white uppercase tracking-widest pl-2 border-l-2 border-neonPurple">Wishlist</h3>${active.length===0?'<div class="text-center py-8 text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">KOSONG</div>':active.map(r=>{const p=Math.min((mon/r.cost)*100,100); const col=mon>=r.cost?'bg-neonGreen':'bg-gradient-to-r from-neonCyan to-neonPurple'; return `
                         <div class="glass-card p-4 rounded-xl relative overflow-hidden group">
@@ -1004,9 +1145,15 @@
                     main.innerHTML = `
                     <div class="pt-2 animate-[fadeIn_0.4s_ease-out] pb-24">
                         <div class="text-center mb-4">
-                            <div class="inline-block px-4 py-1 rounded-full bg-slate-800/50 border border-slate-700">
+                            <div class="inline-block px-4 py-1 rounded-full bg-slate-800/50 border border-slate-700 mb-2">
                                 <p class="text-[10px] text-slate-400 uppercase tracking-widest">HARI INI</p>
                                 <p class="text-neonCyan font-bold text-sm">${Utils.formatDate(today)}</p>
+                            </div>
+                            <div class="flex justify-center gap-2">
+                                 <div class="px-3 py-1 rounded-lg bg-neonPurple/10 border border-neonPurple/30 flex items-center gap-2">
+                                    <i data-lucide="trending-up" class="w-3 h-3 text-neonPurple"></i>
+                                    <span class="text-[10px] text-neonPurple font-bold">AVG: ${pts.avg} PTS/HARI</span>
+                                 </div>
                             </div>
                         </div>
 
