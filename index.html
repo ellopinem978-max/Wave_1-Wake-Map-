@@ -41,16 +41,29 @@
                         display: ['Audiowide', 'cursive'],
                     },
                     colors: {
-                        obsidian: "#020617",
-                        charcoal: "#0f172a",
-                        surface: "#1e293b", 
+                        // Dynamic Theme Colors mapped to CSS Variables
+                        obsidian: "var(--bg-app)",      // Main Background
+                        charcoal: "var(--bg-panel)",    // Secondary/Modal
+                        surface: "var(--bg-card)",      // Card Background
+                        
+                        // Text Colors
+                        white: "var(--text-main)",      // Main Text (Inverts in Light Mode)
+                        slate: {
+                            400: "var(--text-muted)",   // Secondary Text
+                            500: "var(--text-dim)",     // Dim Text
+                            700: "var(--border-dim)",   // Borders
+                            800: "var(--bg-input)"      // Inputs
+                        },
+
+                        // Accents (Dynamic)
+                        neonCyan: "var(--accent-primary)", 
+                        
+                        // Functional Colors (Static/Specific)
                         iron: "#334155",
-                        neonCyan: "#06b6d4",
                         neonPurple: "#8b5cf6",
                         neonGold: "#f59e0b",
                         neonRed: "#ef4444",
                         neonGreen: "#10b981",
-                        glass: "rgba(15, 23, 42, 0.65)",
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
@@ -83,26 +96,44 @@
 
     <!-- CORE STYLESHEET -->
     <style>
-        :root { --ease-expo: cubic-bezier(0.19, 1, 0.22, 1); }
-        body { background-color: #020617; color: #e2e8f0; overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; }
+        :root {
+            --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            
+            /* DEFAULT THEME (Cyan/Obsidian) Initialization */
+            --bg-app: #020617;
+            --bg-panel: #0f172a;
+            --bg-card: #1e293b;
+            --bg-glass: rgba(15, 23, 42, 0.65);
+            --bg-input: #1e293b;
+            
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            --border-dim: #334155;
+            
+            --accent-primary: #06b6d4;
+        }
+
+        body { background-color: var(--bg-app); color: var(--text-muted); overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; transition: background-color 0.5s ease, color 0.3s ease; }
         
         /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 4px; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Glassmorphism System */
+        /* Glassmorphism System - Updated for Theming */
         .glass-card {
-            background: rgba(15, 23, 42, 0.65);
+            background: var(--bg-glass);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
             transition: background 0.3s, border 0.3s, box-shadow 0.3s;
         }
-        .glass-card:active { background: rgba(15, 23, 42, 0.85); }
+        .glass-card:active { background: var(--bg-panel); }
 
         /* Button Interactions */
         .btn-action { position: relative; overflow: hidden; transition: all 0.3s var(--ease-expo); }
@@ -136,20 +167,20 @@
 
         /* Navigation Dock */
         .nav-dock {
-            background: rgba(15, 23, 42, 0.85);
+            background: var(--bg-panel);
             backdrop-filter: blur(20px);
             border-top: 1px solid rgba(255,255,255,0.08);
             box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
         }
-        .nav-item { position: relative; color: #64748b; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .nav-item.active { color: #06b6d4; transform: translateY(-4px); }
-        .nav-item.active .nav-icon { filter: drop-shadow(0 4px 8px rgba(6,182,212,0.4)); stroke-width: 2.5px; }
-        .nav-indicator { width: 4px; height: 4px; background: #06b6d4; border-radius: 50%; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%) scale(0); transition: transform 0.3s; box-shadow: 0 0 8px #06b6d4; }
+        .nav-item { position: relative; color: var(--text-dim); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .nav-item.active { color: var(--accent-primary); transform: translateY(-4px); }
+        .nav-item.active .nav-icon { filter: drop-shadow(0 4px 8px rgba(var(--accent-primary),0.4)); stroke-width: 2.5px; }
+        .nav-indicator { width: 4px; height: 4px; background: var(--accent-primary); border-radius: 50%; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%) scale(0); transition: transform 0.3s; box-shadow: 0 0 8px var(--accent-primary); }
         .nav-item.active .nav-indicator { transform: translateX(-50%) scale(1); }
 
         /* Toast & Overlays */
         #toast-layer { position: fixed; top: 20px; left: 0; right: 0; pointer-events: none; z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .toast-msg { background: rgba(15,23,42,0.95); backdrop-filter: blur(8px); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(-20px); opacity: 0; animation: toastEnter 0.4s forwards; }
+        .toast-msg { background: var(--bg-panel); backdrop-filter: blur(8px); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(-20px); opacity: 0; animation: toastEnter 0.4s forwards; }
         @keyframes toastEnter { to { transform: translateY(0); opacity: 1; } }
         @keyframes toastExit { to { transform: translateY(-20px); opacity: 0; } }
 
@@ -228,9 +259,121 @@
          */
         const Config = {
             APP_NAME: 'Wake Map',
-            VERSION: '7.2.0-CODEX',
+            VERSION: '7.3.0-THEMES',
             STORAGE_PREFIX: 'wakemap_arch_',
             
+            // THEME DEFINITIONS
+            THEMES: [
+                {
+                    id: 'default',
+                    label: 'Default',
+                    desc: 'Cyber Cyan',
+                    colors: {
+                        '--bg-app': '#020617',
+                        '--bg-panel': '#0f172a',
+                        '--bg-card': '#1e293b',
+                        '--bg-glass': 'rgba(15, 23, 42, 0.65)',
+                        '--bg-input': '#1e293b',
+                        '--text-main': '#ffffff',
+                        '--text-muted': '#94a3b8',
+                        '--text-dim': '#64748b',
+                        '--border-dim': '#334155',
+                        '--accent-primary': '#06b6d4'
+                    },
+                    preview: 'bg-cyan-500'
+                },
+                {
+                    id: 'emerald',
+                    label: 'Emerald',
+                    desc: 'Hacker Green',
+                    colors: {
+                        '--bg-app': '#020617',
+                        '--bg-panel': '#022c22',
+                        '--bg-card': '#064e3b',
+                        '--bg-glass': 'rgba(6, 78, 59, 0.65)',
+                        '--bg-input': '#065f46',
+                        '--text-main': '#ffffff',
+                        '--text-muted': '#a7f3d0',
+                        '--text-dim': '#34d399',
+                        '--border-dim': '#059669',
+                        '--accent-primary': '#10b981'
+                    },
+                    preview: 'bg-emerald-500'
+                },
+                {
+                    id: 'amber',
+                    label: 'Amber',
+                    desc: 'Industrial',
+                    colors: {
+                        '--bg-app': '#1c1917',
+                        '--bg-panel': '#292524',
+                        '--bg-card': '#44403c',
+                        '--bg-glass': 'rgba(41, 37, 36, 0.75)',
+                        '--bg-input': '#57534e',
+                        '--text-main': '#fffbeb',
+                        '--text-muted': '#d6d3d1',
+                        '--text-dim': '#a8a29e',
+                        '--border-dim': '#57534e',
+                        '--accent-primary': '#f59e0b'
+                    },
+                    preview: 'bg-amber-500'
+                },
+                {
+                    id: 'crimson',
+                    label: 'Crimson',
+                    desc: 'Vanguard',
+                    colors: {
+                        '--bg-app': '#2b0a0a', // Dark Maroon
+                        '--bg-panel': '#450a0a',
+                        '--bg-card': '#551010',
+                        '--bg-glass': 'rgba(69, 10, 10, 0.7)',
+                        '--bg-input': '#7f1d1d',
+                        '--text-main': '#fef2f2',
+                        '--text-muted': '#fecaca',
+                        '--text-dim': '#f87171',
+                        '--border-dim': '#991b1b',
+                        '--accent-primary': '#ef4444' // Red 500
+                    },
+                    preview: 'bg-red-600'
+                },
+                {
+                    id: 'violet',
+                    label: 'Violet',
+                    desc: 'Dreamscape',
+                    colors: {
+                        '--bg-app': '#1e1b4b', // Indigo 950
+                        '--bg-panel': '#312e81',
+                        '--bg-card': '#4338ca',
+                        '--bg-glass': 'rgba(49, 46, 129, 0.65)',
+                        '--bg-input': '#3730a3',
+                        '--text-main': '#e0e7ff',
+                        '--text-muted': '#a5b4fc',
+                        '--text-dim': '#818cf8',
+                        '--border-dim': '#4f46e5',
+                        '--accent-primary': '#c084fc' // Purple 400
+                    },
+                    preview: 'bg-purple-500'
+                },
+                {
+                    id: 'light',
+                    label: 'Minimalist',
+                    desc: 'Day Mode',
+                    colors: {
+                        '--bg-app': '#f1f5f9', // Slate 100
+                        '--bg-panel': '#cbd5e1', // Slate 300
+                        '--bg-card': '#e2e8f0', // Slate 200
+                        '--bg-glass': 'rgba(255, 255, 255, 0.6)',
+                        '--bg-input': '#f8fafc',
+                        '--text-main': '#0f172a', // Slate 900 (Inverted)
+                        '--text-muted': '#475569', // Slate 600
+                        '--text-dim': '#64748b', // Slate 500
+                        '--border-dim': '#cbd5e1',
+                        '--accent-primary': '#1e3a8a' // Blue 900
+                    },
+                    preview: 'bg-slate-200 border border-slate-400'
+                }
+            ],
+
             // Goal Categories
             GOAL_CATEGORIES: [
                 { id: 'disiplin', label: 'Disiplin', color: 'text-neonCyan', border: 'border-neonCyan' },
@@ -293,7 +436,6 @@
                 { id: 'god', label: 'God Tier', pts: 70, desc: 'Limitless', icon: 'crown', color: 'text-neonGold' }
             ],
             
-            // Reusing Tiers for Achievements if needed, logic is dynamic now
             ACHIEVEMENT_TIERS: {
                 common: { id: 'common', label: 'Iron', bg: 'bg-slate-700', border: 'border-slate-500', glow: 'none' }
             }
@@ -345,9 +487,9 @@
             static get(key) { 
                 try { 
                     const data = localStorage.getItem(Config.STORAGE_PREFIX + key);
-                    if (key === 'settings') return data ? JSON.parse(data) : { muted: false };
+                    if (key === 'settings') return data ? JSON.parse(data) : { muted: false, theme: 'default' };
                     return data ? JSON.parse(data) : []; 
-                } catch { return key === 'settings' ? { muted: false } : []; } 
+                } catch { return key === 'settings' ? { muted: false, theme: 'default' } : []; } 
             }
             static set(key, data) { 
                 localStorage.setItem(Config.STORAGE_PREFIX + key, JSON.stringify(data)); 
@@ -387,7 +529,9 @@
 
             setMuted(val) {
                 this.muted = val;
-                Store.set('settings', { muted: val });
+                // Preserve theme setting when toggling mute
+                const currentSettings = Store.get('settings');
+                Store.set('settings', { ...currentSettings, muted: val });
             }
 
             play(type) {
@@ -585,10 +729,15 @@
                     if(p.y < 0) p.y = this.height;
                     if(p.y > this.height) p.y = 0;
                     
-                    this.ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha})`;
+                    // Dynamic Particle Color
+                    const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-primary').trim();
+                    this.ctx.fillStyle = accentColor || 'rgba(6, 182, 212, 0.5)'; // Fallback
+                    this.ctx.globalAlpha = p.alpha;
+                    
                     this.ctx.beginPath();
                     this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     this.ctx.fill();
+                    this.ctx.globalAlpha = 1.0;
                 });
                 requestAnimationFrame(() => this.animate());
             }
@@ -606,7 +755,7 @@
                 for(let i=1; i<=2; i++) {
                     const active = i <= data.bars;
                     const activeStyle = `background-color:${col}; box-shadow: 0 0 10px ${col}, 0 0 20px ${col}; border: 1px solid rgba(255,255,255,0.5);`;
-                    const inactiveStyle = `background-color:#1e293b; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);`;
+                    const inactiveStyle = `background-color:var(--bg-panel); border: 1px solid var(--border-dim); box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);`;
                     const style = active ? activeStyle : inactiveStyle;
                     
                     bars += `<div class="w-1/2 h-2 rounded-full transition-all duration-500" style="${style}"></div>`;
@@ -672,20 +821,20 @@
                     
                     <div class="relative h-16 w-full mt-2">
                         <div class="absolute inset-0 flex flex-col justify-between opacity-10">
-                            <div class="border-t border-white w-full"></div>
-                            <div class="border-t border-white w-full"></div>
-                            <div class="border-t border-white w-full"></div>
+                            <div class="border-t border-white/20 w-full"></div>
+                            <div class="border-t border-white/20 w-full"></div>
+                            <div class="border-t border-white/20 w-full"></div>
                         </div>
                         
                         <svg viewBox="0 0 100 60" preserveAspectRatio="none" class="w-full h-full overflow-visible">
                             <defs>
                                 <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"/>
-                                    <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+                                    <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.3"/>
+                                    <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0"/>
                                 </linearGradient>
                             </defs>
                             <polygon points="0,60 ${points} 100,60" fill="url(#chartGrad)" />
-                            <polyline points="${points}" fill="none" stroke="#06b6d4" stroke-width="2" vector-effect="non-scaling-stroke" />
+                            <polyline points="${points}" fill="none" stroke="var(--accent-primary)" stroke-width="2" vector-effect="non-scaling-stroke" />
                             ${data.map((val, i) => {
                                 const x = i * stepX;
                                 const y = h - ((val / maxVal) * h);
@@ -854,6 +1003,10 @@
                 
                 Store.prune(2);
                 
+                // Initialize Theme
+                const settings = Store.get('settings');
+                this.setTheme(settings.theme || 'default');
+
                 const monthDisplay = document.getElementById('header-month');
                 if (monthDisplay) {
                     monthDisplay.innerText = Utils.formatMonth(Utils.getMonthKey(Utils.getISO()));
@@ -876,6 +1029,23 @@
 
                     if(hasUpdate && this.state.view === 'home') this.render();
                 }, 10000);
+            },
+
+            setTheme(themeId) {
+                const theme = Config.THEMES.find(t => t.id === themeId) || Config.THEMES[0];
+                const root = document.documentElement;
+                
+                // Apply CSS variables
+                Object.entries(theme.colors).forEach(([key, value]) => {
+                    root.style.setProperty(key, value);
+                });
+
+                // Save setting
+                const settings = Store.get('settings');
+                Store.set('settings', { ...settings, theme: themeId });
+                
+                // Optional: Force re-render if needed
+                // this.render();
             },
 
             // --- NOTIFICATION SYSTEM ---
@@ -1659,6 +1829,8 @@
                 const m = document.getElementById('modal-layer');
                 const isMuted = this.sound.muted;
                 const notifPerm = ("Notification" in window) ? Notification.permission : 'denied';
+                const settings = Store.get('settings');
+                const currentTheme = settings.theme || 'default';
                 
                 m.innerHTML = `
                 <div class="bg-charcoal border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-2xl w-full max-w-sm p-6 shadow-2xl pointer-events-auto animate-[slideIn_0.3s_ease-out]">
@@ -1670,8 +1842,25 @@
                         <button onclick="App.controller.closeModal()" class="text-slate-500 hover:text-white bg-slate-800/50 p-2 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
                     
-                    <div class="space-y-3">
+                    <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scroll pr-1">
                         
+                        <!-- Theme Selector -->
+                        <div>
+                            <label class="text-[9px] text-slate-500 uppercase font-bold mb-2 block">Tema Visual</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                ${Config.THEMES.map(t => {
+                                    const active = currentTheme === t.id;
+                                    return `
+                                    <button onclick="App.controller.setTheme('${t.id}')" class="p-2 rounded-xl border ${active ? 'border-neonCyan bg-white/5' : 'border-slate-700 bg-slate-800'} flex flex-col items-center gap-2 group transition-all">
+                                        <div class="w-full h-8 rounded-lg ${t.preview} shadow-lg relative overflow-hidden">
+                                            ${active ? '<div class="absolute inset-0 flex items-center justify-center bg-black/20"><i data-lucide="check" class="w-4 h-4 text-white"></i></div>' : ''}
+                                        </div>
+                                        <span class="text-[9px] font-bold ${active ? 'text-white' : 'text-slate-400'}">${t.label}</span>
+                                    </button>`;
+                                }).join('')}
+                            </div>
+                        </div>
+
                         <!-- Sound Toggle -->
                         <div class="flex items-center justify-between p-4 rounded-xl bg-surface border border-slate-700">
                             <div class="flex items-center gap-3">
@@ -1701,29 +1890,31 @@
                             }
                         </div>
 
-                        <button onclick="App.controller.exportData()" class="w-full flex items-center gap-3 p-4 rounded-xl bg-surface border border-slate-700 hover:border-neonCyan transition-all group">
-                            <div class="p-2 bg-neonCyan/10 rounded-lg text-neonCyan"><i data-lucide="download" class="w-5 h-5"></i></div>
-                            <div class="text-left">
-                                <span class="block text-sm font-bold text-white group-hover:text-neonCyan transition-colors">Backup Data</span>
-                                <span class="block text-[10px] text-slate-400">Unduh data ke file JSON</span>
-                            </div>
-                        </button>
-                        
-                        <button onclick="App.controller.importData()" class="w-full flex items-center gap-3 p-4 rounded-xl bg-surface border border-slate-700 hover:border-neonGreen transition-all group">
-                            <div class="p-2 bg-neonGreen/10 rounded-lg text-neonGreen"><i data-lucide="upload" class="w-5 h-5"></i></div>
-                            <div class="text-left">
-                                <span class="block text-sm font-bold text-white group-hover:text-neonGreen transition-colors">Restore Data</span>
-                                <span class="block text-[10px] text-slate-400">Pulihkan dari file JSON</span>
-                            </div>
-                        </button>
-                        
-                        <button onclick="if(confirm('Yakin ingin menghapus SEMUA data? Aksi ini tidak bisa dibatalkan.')) { localStorage.clear(); location.reload(); }" class="w-full flex items-center gap-3 p-4 rounded-xl bg-surface border border-slate-700 hover:border-neonRed transition-all group mt-6">
-                            <div class="p-2 bg-neonRed/10 rounded-lg text-neonRed"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
-                            <div class="text-left">
-                                <span class="block text-sm font-bold text-white group-hover:text-neonRed transition-colors">Reset Total</span>
-                                <span class="block text-[10px] text-slate-400">Hapus semua progress</span>
-                            </div>
-                        </button>
+                        <div class="space-y-2 pt-2">
+                            <button onclick="App.controller.exportData()" class="w-full flex items-center gap-3 p-4 rounded-xl bg-surface border border-slate-700 hover:border-neonCyan transition-all group">
+                                <div class="p-2 bg-neonCyan/10 rounded-lg text-neonCyan"><i data-lucide="download" class="w-5 h-5"></i></div>
+                                <div class="text-left">
+                                    <span class="block text-sm font-bold text-white group-hover:text-neonCyan transition-colors">Backup Data</span>
+                                    <span class="block text-[10px] text-slate-400">Unduh data ke file JSON</span>
+                                </div>
+                            </button>
+                            
+                            <button onclick="App.controller.importData()" class="w-full flex items-center gap-3 p-4 rounded-xl bg-surface border border-slate-700 hover:border-neonGreen transition-all group">
+                                <div class="p-2 bg-neonGreen/10 rounded-lg text-neonGreen"><i data-lucide="upload" class="w-5 h-5"></i></div>
+                                <div class="text-left">
+                                    <span class="block text-sm font-bold text-white group-hover:text-neonGreen transition-colors">Restore Data</span>
+                                    <span class="block text-[10px] text-slate-400">Pulihkan dari file JSON</span>
+                                </div>
+                            </button>
+                            
+                            <button onclick="if(confirm('Yakin ingin menghapus SEMUA data? Aksi ini tidak bisa dibatalkan.')) { localStorage.clear(); location.reload(); }" class="w-full flex items-center gap-3 p-4 rounded-xl bg-surface border border-slate-700 hover:border-neonRed transition-all group">
+                                <div class="p-2 bg-neonRed/10 rounded-lg text-neonRed"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
+                                <div class="text-left">
+                                    <span class="block text-sm font-bold text-white group-hover:text-neonRed transition-colors">Reset Total</span>
+                                    <span class="block text-[10px] text-slate-400">Hapus semua progress</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>`;
                 m.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
@@ -1743,7 +1934,7 @@
                     tasks: Store.get('tasks'),
                     rewards: Store.get('rewards'),
                     achievements: Store.get('achievements'), 
-                    goals: Store.get('goals'), // EXPORT GOALS
+                    goals: Store.get('goals'), 
                     blueprints: Store.get('blueprints'), 
                     reflections: Store.get('reflections'),
                     finance: Store.get('finance'),
@@ -1773,7 +1964,7 @@
                             if (data.tasks) Store.set('tasks', data.tasks);
                             if (data.rewards) Store.set('rewards', data.rewards);
                             if (data.achievements) Store.set('achievements', data.achievements); 
-                            if (data.goals) Store.set('goals', data.goals); // IMPORT GOALS
+                            if (data.goals) Store.set('goals', data.goals); 
                             if (data.blueprints) Store.set('blueprints', data.blueprints); 
                             if (data.reflections) Store.set('reflections', data.reflections);
                             if (data.finance) Store.set('finance', data.finance);
